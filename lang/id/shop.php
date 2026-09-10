@@ -19,6 +19,8 @@ return [
     'customer_created' => 'Pelanggan berhasil dibuat.',
     'customer_updated' => 'Pelanggan berhasil diperbarui.',
     'customer_deleted' => 'Pelanggan berhasil dihapus.',
+    'customer_status_updated' => 'Status verifikasi pelanggan berhasil diperbarui.',
+    'account_pending_verification' => 'Akun Anda berhasil dibuat. Admin harus memverifikasi akun sebelum Anda dapat masuk.',
 
     'payment_method_created' => 'Metode pembayaran berhasil dibuat.',
     'payment_method_updated' => 'Metode pembayaran berhasil diperbarui.',

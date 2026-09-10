@@ -5,6 +5,7 @@ export type User = {
     name: string;
     phone: string;
     role: UserRole;
+    status?: 'verified' | 'pending';
     email: string | null;
     avatar?: string;
     email_verified_at: string | null;

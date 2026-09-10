@@ -29,6 +29,7 @@ class SettingsController extends Controller
                 'store_address' => $settings['store_address'] ?? null,
                 'store_logo' => $storeLogo,
                 'store_logo_url' => $storeLogo ? Storage::disk('public')->url($storeLogo) : null,
+                'customer_verification' => $settings['customer_verification'] ?? '0',
                 'whatsapp_number' => $settings['whatsapp_number'] ?? null,
                 'shipping_fee' => $settings['shipping_fee'] ?? (string) Order::SHIPPING_FEE,
                 'free_shipping_threshold' => $settings['free_shipping_threshold'] ?? (string) Order::FREE_SHIPPING_THRESHOLD,

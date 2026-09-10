@@ -31,7 +31,7 @@ trait BannerValidationRules
         return [
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif', 'max:2048'],
             'link_url' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],

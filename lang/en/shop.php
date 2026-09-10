@@ -19,6 +19,8 @@ return [
     'customer_created' => 'Customer created.',
     'customer_updated' => 'Customer updated.',
     'customer_deleted' => 'Customer deleted.',
+    'customer_status_updated' => 'Customer verification status updated.',
+    'account_pending_verification' => 'Your account was created. An admin must verify it before you can log in.',
 
     'payment_method_created' => 'Payment method created.',
     'payment_method_updated' => 'Payment method updated.',

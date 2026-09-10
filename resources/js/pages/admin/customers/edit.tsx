@@ -16,9 +16,19 @@ import type { Address, User } from '@/types';
 type Props = {
     customer: User;
     addresses: Address[];
+    customerStatuses: Record<string, string>;
 };
 
-export default function EditCustomer({ customer, addresses }: Props) {
+const customerStatusStyles: Record<string, string> = {
+    verified: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+    pending: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+};
+
+export default function EditCustomer({
+    customer,
+    addresses,
+    customerStatuses,
+}: Props) {
     return (
         <>
             <Head title={t('Edit {name}', { name: customer.name })} />
@@ -46,6 +56,14 @@ export default function EditCustomer({ customer, addresses }: Props) {
                                 name: customer.name,
                             })}
                         </p>
+                        <span
+                            className={`mt-2 inline-flex w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${customerStatusStyles[customer.status ?? 'verified']}`}
+                        >
+                            {t(
+                                customerStatuses[customer.status ?? 'verified'] ??
+                                    'Verified',
+                            )}
+                        </span>
                     </CardHeader>
                     <CardContent>
                         <Form

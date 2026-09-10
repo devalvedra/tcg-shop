@@ -97,29 +97,33 @@ export default function MyOrders({
                     <div className="mt-6 flex flex-col gap-4">
                         {orders.data.map((order) => (
                             <Card key={order.id}>
-                                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2">
+                                <CardContent className="grid grid-cols-1 gap-6 p-4 sm:flex-row md:grid-cols-[3fr_1fr_1fr] md:items-start">
+                                    <div className="flex min-w-0 flex-col gap-2">
+                                        <div className="flex flex-col gap-2 md:flex-row md:items-center">
                                             <p className="font-semibold">
                                                 {order.order_number}
                                             </p>
-                                            <span
-                                                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyles[order.status]}`}
-                                            >
-                                                {t(
-                                                    statuses[order.status] ??
-                                                        order.status,
-                                                )}
-                                            </span>
-                                            <span
-                                                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${paymentStyles[order.payment_status]}`}
-                                            >
-                                                {t(
-                                                    paymentStatuses[
-                                                        order.payment_status
-                                                    ] ?? order.payment_status,
-                                                )}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span
+                                                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyles[order.status]}`}
+                                                >
+                                                    {t(
+                                                        statuses[
+                                                            order.status
+                                                        ] ?? order.status,
+                                                    )}
+                                                </span>
+                                                <span
+                                                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${paymentStyles[order.payment_status]}`}
+                                                >
+                                                    {t(
+                                                        paymentStatuses[
+                                                            order.payment_status
+                                                        ] ??
+                                                            order.payment_status,
+                                                    )}
+                                                </span>
+                                            </div>
                                         </div>
                                         <p className="mt-1 text-sm text-muted-foreground">
                                             {order.items_count === 1
@@ -141,56 +145,44 @@ export default function MyOrders({
                                                           count: order.items_count,
                                                       },
                                                   )}
-                                            {order.payment_method
-                                                ? ` · ${t(
-                                                      paymentMethods[
-                                                          order.payment_method
-                                                      ] ?? order.payment_method,
-                                                  )}`
-                                                : ''}
                                         </p>
+                                        <div>
+                                            {t('Payment method')} :
+                                            {order.payment_method &&
+                                                ` ${t(
+                                                    paymentMethods[
+                                                        order.payment_method
+                                                    ] ?? order.payment_method,
+                                                )}`}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center justify-between gap-4 sm:justify-end">
+                                    <div className="flex flex-col items-start justify-between gap-4 sm:justify-end">
+                                        {/* {Number(order.down_payment) > 0 && (
+                                            <div className="text-md mt-1 flex flex-col items-start justify-end gap-1.5 text-muted-foreground">
+                                                <div>{t('Down payment')}: </div>
+                                                <div>
+                                                    {formatCurrency(
+                                                        order.down_payment,
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )} */}
                                         <div className="text-right">
                                             <p className="text-lg font-semibold">
                                                 {formatCurrency(order.total)}
                                             </p>
-                                            {Number(order.down_payment) > 0 && (
-                                                <p className="mt-1 flex items-center justify-end gap-1.5 text-xs text-muted-foreground">
-                                                    {t('Down payment')}:{' '}
-                                                    {formatCurrency(
-                                                        order.down_payment,
-                                                    )}
-                                                    <span
-                                                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ${downPaymentStyles[order.down_payment_status]}`}
-                                                    >
-                                                        {t(
-                                                            downPaymentStatuses[
-                                                                order
-                                                                    .down_payment_status
-                                                            ] ??
-                                                                order
-                                                                    .down_payment_status,
-                                                        )}
-                                                    </span>
-                                                </p>
-                                            )}
                                         </div>
-                                        <Button
-                                            asChild
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            <Link
-                                                href={showOrder({
-                                                    order: order.id,
-                                                })}
-                                            >
-                                                {t('View')}
-                                                <ArrowRight className="size-4" />
-                                            </Link>
-                                        </Button>
                                     </div>
+                                    <Button asChild variant="outline" size="sm">
+                                        <Link
+                                            href={showOrder({
+                                                order: order.id,
+                                            })}
+                                        >
+                                            {t('View')}
+                                            <ArrowRight className="size-4" />
+                                        </Link>
+                                    </Button>
                                 </CardContent>
                             </Card>
                         ))}

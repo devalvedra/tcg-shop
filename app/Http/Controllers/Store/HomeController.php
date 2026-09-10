@@ -24,6 +24,7 @@ class HomeController extends Controller
         $featuredProducts = Product::query()
             ->with('images')
             ->where('status', Product::STATUS_READY)
+            ->where('stock', '>=', 1)
             ->orderByDesc('created_at')
             ->limit(8)
             ->get();
@@ -31,6 +32,7 @@ class HomeController extends Controller
         $preOrderProducts = Product::query()
             ->with('images')
             ->where('status', Product::STATUS_PRE_ORDER)
+            ->where('stock', '>=', 1)
             ->orderByDesc('created_at')
             ->get();
 

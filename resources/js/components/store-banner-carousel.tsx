@@ -69,13 +69,31 @@ export function StoreBannerCarousel({ banners }: Props) {
                 style={{ transform: `translateX(-${current * 100}%)` }}
             >
                 <div className="flex">
-                    {banners.map((item) => (
+                    {banners.map((item, bannerIndex) => (
                         <div key={item.id} className="relative w-full shrink-0">
                             {item.url ? (
                                 <div className="relative aspect-[21/7] w-full">
                                     <img
                                         src={item.url}
+                                        srcSet={
+                                            item.mobile_url &&
+                                            item.mobile_url !== item.url
+                                                ? `${item.mobile_url} 768w, ${item.url} 1920w`
+                                                : undefined
+                                        }
+                                        sizes="100vw"
                                         alt={item.title}
+                                        loading={
+                                            bannerIndex === 0
+                                                ? 'eager'
+                                                : 'lazy'
+                                        }
+                                        decoding="async"
+                                        fetchPriority={
+                                            bannerIndex === 0
+                                                ? 'high'
+                                                : 'auto'
+                                        }
                                         className="absolute inset-0 h-full w-full object-cover"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/85 via-indigo-900/40 to-transparent" />

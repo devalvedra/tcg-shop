@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, router } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Search, Trash2, UserRound } from 'lucide-react';
 import CustomerController from '@/actions/App/Http/Controllers/Admin/CustomerController';
 import { SortableTh } from '@/components/sortable-th';
@@ -13,11 +13,13 @@ import {
     edit as editCustomer,
     index as customersIndex,
     show as showCustomer,
+    status as updateCustomerStatus,
 } from '@/routes/admin/customers';
 import type { PaginatedData, User } from '@/types';
 
 type Props = {
     customers: PaginatedData<User>;
+    customerStatuses: Record<string, string>;
     filters: {
         search?: string;
         sort?: string;
@@ -25,7 +27,16 @@ type Props = {
     };
 };
 
-export default function CustomersIndex({ customers, filters }: Props) {
+const statusStyles: Record<string, string> = {
+    verified: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+    pending: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+};
+
+export default function CustomersIndex({
+    customers,
+    customerStatuses,
+    filters,
+}: Props) {
     const getInitials = useInitials();
     const direction: SortDirection =
         filters.direction === 'desc' ? 'desc' : 'asc';
@@ -42,6 +53,30 @@ export default function CustomersIndex({ customers, filters }: Props) {
         customersIndex.url({
             query: { ...sortQuery, sort: sortKey, direction: sortDirection },
         });
+
+    const toggleStatus = (customer: User) => {
+        const next = customer.status === 'verified' ? 'pending' : 'verified';
+
+        const confirmed = window.confirm(
+            next === 'verified'
+                ? t('Mark {name} as verified?', {
+                      name: customer.name,
+                  })
+                : t('Set {name} to waiting for verification?', {
+                      name: customer.name,
+                  }),
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        router.patch(
+            updateCustomerStatus.url({ customer: customer.id }),
+            { status: next },
+            { preserveScroll: true },
+        );
+    };
 
     return (
         <>
@@ -133,6 +168,9 @@ export default function CustomersIndex({ customers, filters }: Props) {
                                                 getHref={sortHref}
                                                 className="hidden lg:table-cell"
                                             />
+                                            <th className="px-4 py-3 font-medium">
+                                                {t('Status')}
+                                            </th>
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
                                             </th>
@@ -171,6 +209,27 @@ export default function CustomersIndex({ customers, filters }: Props) {
                                                     {new Date(
                                                         customer.created_at,
                                                     ).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <button
+                                                        type="button"
+                                                        title={t(
+                                                            'Change status',
+                                                        )}
+                                                        onClick={() =>
+                                                            toggleStatus(
+                                                                customer,
+                                                            )
+                                                        }
+                                                        className={`inline-flex cursor-pointer rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyles[customer.status ?? 'verified']}`}
+                                                    >
+                                                        {t(
+                                                            customerStatuses[
+                                                                customer.status ??
+                                                                    'verified'
+                                                            ] ?? 'Verified',
+                                                        )}
+                                                    </button>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center justify-end gap-1">

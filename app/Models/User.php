@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $phone
  * @property string|null $username
  * @property string $role
+ * @property string $status
  * @property string|null $email
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -30,7 +31,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Address> $addresses
  */
-#[Fillable(['name', 'phone', 'username', 'role', 'email', 'password'])]
+#[Fillable(['name', 'phone', 'username', 'role', 'status', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -46,6 +47,24 @@ class User extends Authenticatable
      * The role assigned to customers.
      */
     public const string ROLE_CUSTOMER = 'customer';
+
+    /**
+     * The status of an account that has been verified.
+     */
+    public const string STATUS_VERIFIED = 'verified';
+
+    /**
+     * The status of a customer account waiting for admin verification.
+     */
+    public const string STATUS_PENDING = 'pending';
+
+    /**
+     * @var array<string, string>
+     */
+    public const array STATUS_LABELS = [
+        self::STATUS_VERIFIED => 'Verified',
+        self::STATUS_PENDING => 'Waiting for verification',
+    ];
 
     /**
      * The default password assigned to newly created customer accounts.
@@ -66,6 +85,24 @@ class User extends Authenticatable
     public function isCustomer(): bool
     {
         return $this->role === self::ROLE_CUSTOMER;
+    }
+
+    /**
+     * Determine whether the account is verified.
+     */
+    public function isVerified(): bool
+    {
+        return $this->role === self::ROLE_ADMIN
+            || $this->status === self::STATUS_VERIFIED;
+    }
+
+    /**
+     * Determine whether the account is waiting for verification.
+     */
+    public function isPendingVerification(): bool
+    {
+        return $this->role === self::ROLE_CUSTOMER
+            && $this->status === self::STATUS_PENDING;
     }
 
     /**

@@ -40,6 +40,7 @@ Route::get('admin', function () {
 
 Route::middleware(['guest'])->group(function () {
     Route::get('register', [RegisterController::class, 'create'])->name('register');
+    Route::get('register/pending', [RegisterController::class, 'pending'])->name('register.pending');
     Route::post('register', [RegisterController::class, 'store'])->name('register.store');
 
     Route::prefix('admin')->group(function () {
@@ -113,6 +114,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('admin.customers.show');
         Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('admin.customers.edit');
         Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('admin.customers.update');
+        Route::patch('customers/{customer}/status', [CustomerController::class, 'updateStatus'])->name('admin.customers.status');
         Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy');
 
         Route::get('promo-codes', [PromoCodeController::class, 'index'])->name('admin.promo-codes.index');

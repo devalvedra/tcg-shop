@@ -25,6 +25,7 @@ type Props = {
         store_address: string | null;
         store_logo: string | null;
         store_logo_url: string | null;
+        customer_verification: string;
         whatsapp_number: string | null;
         shipping_fee: string;
         free_shipping_threshold: string;
@@ -285,6 +286,53 @@ export default function AdminSettings({ settings }: Props) {
                                                 'Customers are offered a WhatsApp confirmation when placing an order.',
                                             )}
                                         </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="gap-0 py-5">
+                                <CardHeader className="px-5 py-0">
+                                    <CardTitle>
+                                        {t('Customer verification')}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {t(
+                                            'Controls whether new customers must be verified before they can log in',
+                                        )}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid gap-6 px-5 pt-6 sm:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="customer_verification">
+                                            {t('New customer verification')}
+                                        </Label>
+                                        <select
+                                            id="customer_verification"
+                                            name="customer_verification"
+                                            defaultValue={
+                                                settings.customer_verification
+                                            }
+                                            className={`w-full ${nativeSelectClasses}`}
+                                        >
+                                            <option value="0">
+                                                {t('Not required')}
+                                            </option>
+                                            <option value="1">
+                                                {t(
+                                                    'Required (admin approval)',
+                                                )}
+                                            </option>
+                                        </select>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t(
+                                                'When required, new accounts show as waiting for verification until an admin approves them.',
+                                            )}
+                                        </p>
+                                        <InputError
+                                            message={
+                                                errors.customer_verification
+                                            }
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>

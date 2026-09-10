@@ -43,6 +43,7 @@ class CustomerController extends Controller
         return Inertia::render('admin/customers/index', [
             'customers' => $customers,
             'filters' => $request->only(['search', 'sort', 'direction']),
+            'customerStatuses' => User::STATUS_LABELS,
         ]);
     }
 
@@ -56,12 +57,15 @@ class CustomerController extends Controller
 
     /**
      * Store a newly created customer account.
+     *
+     * Accounts created by an admin are always verified.
      */
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
         $customer = User::create([
             ...$request->validated(),
             'role' => User::ROLE_CUSTOMER,
+            'status' => User::STATUS_VERIFIED,
             'password' => User::DEFAULT_CUSTOMER_PASSWORD,
         ]);
 
@@ -100,6 +104,7 @@ class CustomerController extends Controller
                 ->get(),
             'orders' => $orders,
             'statuses' => Order::STATUS_LABELS,
+            'customerStatuses' => User::STATUS_LABELS,
         ]);
     }
 
@@ -116,7 +121,26 @@ class CustomerController extends Controller
                 ->orderByDesc('is_default')
                 ->orderByDesc('id')
                 ->get(),
+            'customerStatuses' => User::STATUS_LABELS,
         ]);
+    }
+
+    /**
+     * Update the verification status of a customer account.
+     */
+    public function updateStatus(Request $request, User $customer): RedirectResponse
+    {
+        abort_unless($customer->isCustomer(), 404);
+
+        $status = $request->input('status');
+
+        abort_unless(in_array($status, [User::STATUS_VERIFIED, User::STATUS_PENDING], true), 422);
+
+        $customer->update(['status' => $status]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.customer_status_updated')]);
+
+        return back();
     }
 
     /**

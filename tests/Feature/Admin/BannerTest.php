@@ -89,6 +89,30 @@ test('a banner can be created with an image', function () {
     Storage::disk('public')->assertExists($banner->image);
 });
 
+test('banner uploads are normalized into desktop and mobile webp variants', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.banners.store'), [
+            'title' => 'Variants banner',
+            'sort_order' => 0,
+            'is_active' => true,
+            'image' => UploadedFile::fake()->image('wide.jpg', 2000, 700),
+        ])
+        ->assertRedirect();
+
+    $banner = Banner::where('title', 'Variants banner')->firstOrFail();
+
+    expect($banner->image)->not->toBeNull();
+    expect($banner->image_mobile)->not->toBeNull();
+    expect($banner->image)->not->toBe($banner->image_mobile);
+
+    Storage::disk('public')->assertExists($banner->image);
+    Storage::disk('public')->assertExists($banner->image_mobile);
+});
+
 test('a banner accepts is_active submitted as a string, like the browser sends it', function () {
     Storage::fake('public');
 

@@ -33,6 +33,7 @@ type Props = {
     addresses: Address[];
     orders: OrderSummary[];
     statuses: Record<string, string>;
+    customerStatuses: Record<string, string>;
 };
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -44,11 +45,17 @@ const statusStyles: Record<OrderStatus, string> = {
     cancelled: 'bg-rose-50 text-rose-700 ring-rose-600/20',
 };
 
+const customerStatusStyles: Record<string, string> = {
+    verified: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+    pending: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+};
+
 export default function ShowCustomer({
     customer,
     addresses,
     orders,
     statuses,
+    customerStatuses,
 }: Props) {
     return (
         <>
@@ -84,6 +91,14 @@ export default function ShowCustomer({
                                 {customer.phone}
                                 {customer.email ? ` • ${customer.email}` : ''}
                             </p>
+                            <span
+                                className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${customerStatusStyles[customer.status ?? 'verified']}`}
+                            >
+                                {t(
+                                    customerStatuses[customer.status ?? 'verified'] ??
+                                        'Verified',
+                                )}
+                            </span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

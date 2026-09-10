@@ -53,6 +53,18 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
+test('customers waiting for verification cannot log in', function () {
+    $user = User::factory()->pendingVerification()->create();
+
+    $response = $this->post(route('login.store'), [
+        'phone' => $user->phone,
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors('phone');
+    $this->assertGuest();
+});
+
 test('users can logout', function () {
     $user = User::factory()->create();
 

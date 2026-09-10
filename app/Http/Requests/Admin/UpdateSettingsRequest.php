@@ -29,6 +29,7 @@ class UpdateSettingsRequest extends FormRequest
             'store_phone' => ['nullable', 'string', 'max:50'],
             'store_address' => ['nullable', 'string', 'max:500'],
             'store_logo' => ['nullable', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
+            'customer_verification' => ['sometimes', 'boolean'],
             'whatsapp_number' => ['nullable', 'string', 'max:50'],
             'shipping_fee' => ['required', 'numeric', 'min:0'],
             'free_shipping_threshold' => ['required', 'numeric', 'min:0'],

@@ -17,6 +17,7 @@ createInertiaApp({
         switch (true) {
             case name === 'auth/login':
             case name === 'auth/register':
+            case name === 'auth/pending-verification':
                 return AuthCardLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;

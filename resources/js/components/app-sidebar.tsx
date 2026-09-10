@@ -7,7 +7,6 @@ import {
     Package,
     Percent,
     ReceiptText,
-    Settings,
     ShoppingCart,
     Tags,
     TrendingUp,
@@ -25,7 +24,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { t } from '@/lib/i18n';
 import { dashboard } from '@/routes/admin';
 import { index as bannersIndex } from '@/routes/admin/banners';
 import { index as categoriesIndex } from '@/routes/admin/categories';
@@ -40,7 +38,6 @@ import {
     sellingProducts,
     totalSales,
 } from '@/routes/admin/reports';
-import { index as settingsIndex } from '@/routes/admin/settings';
 import type { NavItem } from '@/types';
 
 const overviewNavItems: NavItem[] = [

@@ -28,11 +28,22 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'phone' => fake()->unique()->e164PhoneNumber(),
             'role' => User::ROLE_CUSTOMER,
+            'status' => User::STATUS_VERIFIED,
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Indicate that the account is waiting for admin verification.
+     */
+    public function pendingVerification(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => User::STATUS_PENDING,
+        ]);
     }
 
     /**

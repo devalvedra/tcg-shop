@@ -1,6 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Package, Search } from 'lucide-react';
-import { SearchableSelect } from '@/components/searchable-select';
+import { Head, Link } from '@inertiajs/react';
+import { Delete, Package, Search } from 'lucide-react';
 import { ProductCard } from '@/components/store/product-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,24 +39,8 @@ const hasFilters = (filters: Props['filters']) =>
     Boolean(filters.search || filters.category || filters.status);
 
 export default function Catalog({ products, filters, categories }: Props) {
-    const categoryOptions = [
-        { value: '', label: t('All categories') },
-        ...Object.entries(categories).map(([value, label]) => ({
-            value,
-            label,
-        })),
-    ];
-
-    const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        const term = String(formData.get('search') ?? '').trim();
-
-        router.get(
-            withFilters({ ...filters, search: term }),
-            undefined,
-            { preserveScroll: true },
-        );
+    const submitOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        event.currentTarget.form?.submit();
     };
 
     return (
@@ -74,53 +57,45 @@ export default function Catalog({ products, filters, categories }: Props) {
                     </p>
                 </div>
 
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <form
-                            onSubmit={submitSearch}
-                            className="relative"
-                            role="search"
-                        >
+                <form
+                    method="get"
+                    action={catalog.url({})}
+                    className="mt-6 justify-between gap-3"
+                    role="search"
+                >
+                    <div className="flex flex-col gap-2 md:flex-row md:items-stretch">
+                        <div className="relative">
                             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 type="search"
                                 name="search"
                                 key={filters.search}
                                 defaultValue={filters.search ?? ''}
-                                className="h-9 w-44 pl-9 md:w-56"
+                                className="h-9 w-full pl-9 md:w-56"
                                 placeholder={t('Search products...')}
                                 aria-label={t('Search products...')}
                             />
-                        </form>
-                        <SearchableSelect
-                            value={filters.category ?? ''}
-                            onChange={(category) => {
-                                router.get(
-                                    withFilters({
-                                        ...filters,
-                                        category,
-                                    }),
-                                    undefined,
-                                    { preserveScroll: true },
-                                );
-                            }}
-                            options={categoryOptions}
-                            placeholder={t('All categories')}
-                            ariaLabel={t('All categories')}
-                            className="w-48 md:w-56"
-                        />
+                        </div>
                         <select
-                            value={filters.status ?? ''}
-                            onChange={(e) => {
-                                router.get(
-                                    withFilters({
-                                        ...filters,
-                                        status: e.target.value,
-                                    }),
-                                    undefined,
-                                    { preserveScroll: true },
-                                );
-                            }}
+                            name="category"
+                            defaultValue={filters.category ?? ''}
+                            onChange={submitOnChange}
+                            className={nativeSelectClasses}
+                            aria-label={t('All categories')}
+                        >
+                            <option value="">{t('All categories')}</option>
+                            {Object.entries(categories).map(
+                                ([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ),
+                            )}
+                        </select>
+                        <select
+                            name="status"
+                            defaultValue={filters.status ?? ''}
+                            onChange={submitOnChange}
                             className={nativeSelectClasses}
                             aria-label={t('Status')}
                         >
@@ -129,17 +104,9 @@ export default function Catalog({ products, filters, categories }: Props) {
                             <option value="pre-order">{t('Pre-order')}</option>
                         </select>
                         <select
-                            value={filters.sort ?? 'newest'}
-                            onChange={(e) => {
-                                router.get(
-                                    withFilters({
-                                        ...filters,
-                                        sort: e.target.value,
-                                    }),
-                                    undefined,
-                                    { preserveScroll: true },
-                                );
-                            }}
+                            name="sort"
+                            defaultValue={filters.sort ?? 'newest'}
+                            onChange={submitOnChange}
                             className={nativeSelectClasses}
                             aria-label={t('Sort')}
                         >
@@ -151,13 +118,24 @@ export default function Catalog({ products, filters, categories }: Props) {
                                 {t('Price: High to Low')}
                             </option>
                         </select>
+                        {/* <Button
+                            type="submit"
+                            variant="outline"
+                            className="justify-self-end"
+                        >
+                            <Search className="size-4" />
+                            {t('Search')}
+                        </Button> */}
+                        {hasFilters(filters) && (
+                            <Button variant="outline">
+                                <Delete className="size-4" />
+                                <Link href={catalog()}>
+                                    {t('Clear Filter')}
+                                </Link>
+                            </Button>
+                        )}
                     </div>
-                    {hasFilters(filters) && (
-                        <Button asChild variant="ghost">
-                            <Link href={catalog()}>{t('Clear')}</Link>
-                        </Button>
-                    )}
-                </div>
+                </form>
 
                 {products.data.length > 0 ? (
                     <>

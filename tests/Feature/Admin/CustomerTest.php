@@ -185,3 +185,37 @@ test('an admin can view a customers shipping addresses on the edit page', functi
             ->where('addresses.0.receiver_name', 'Alex Carter')
             ->where('addresses.0.is_default', true));
 });
+
+test('an admin can update a customer verification status', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->pendingVerification()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.status', $customer), ['status' => User::STATUS_VERIFIED])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $this->assertSame(User::STATUS_VERIFIED, $customer->fresh()->status);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.status', $customer), ['status' => User::STATUS_PENDING])
+        ->assertRedirect();
+
+    $this->assertSame(User::STATUS_PENDING, $customer->fresh()->status);
+});
+
+test('customer accounts created by an admin are verified', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.customers.store'), [
+            'name' => 'Avery Chen',
+            'phone' => '09171234567',
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('users', [
+        'phone' => '09171234567',
+        'status' => User::STATUS_VERIFIED,
+    ]);
+});

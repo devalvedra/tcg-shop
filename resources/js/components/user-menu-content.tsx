@@ -1,5 +1,4 @@
 import { Link, router } from '@inertiajs/react';
-import { index as settingsIndex } from '@/routes/admin/settings';
 import { LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuGroup,
@@ -11,7 +10,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { t } from '@/lib/i18n';
 import { logout } from '@/routes';
-import { index as profileIndex } from '@/routes/profile';
+import { index as settingsIndex } from '@/routes/admin/settings';
 import type { User } from '@/types';
 
 type Props = {

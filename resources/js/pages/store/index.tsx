@@ -92,12 +92,10 @@ export default function StoreIndex({
                         </p>
                     </div>
                     <Link
-                        href={catalog.url({
-                            query: { status: 'pre-order' },
-                        })}
+                        href={catalog.url()}
                         className="hidden items-center gap-1 text-sm font-medium text-indigo-600 hover:underline sm:inline-flex"
                     >
-                        {t('View pre-orders')}
+                        {t('View catalog')}
                         <ArrowRight className="size-4" />
                     </Link>
                 </div>

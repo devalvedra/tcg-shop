@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\Storage;
  * @property string $title
  * @property string|null $subtitle
  * @property string|null $image
+ * @property string|null $image_mobile
  * @property string|null $link_url
  * @property int $sort_order
  * @property bool $is_active
  * @property-read string|null $url
+ * @property-read string|null $mobile_url
  */
-#[Fillable(['title', 'subtitle', 'image', 'link_url', 'sort_order', 'is_active'])]
+#[Fillable(['title', 'subtitle', 'image', 'image_mobile', 'link_url', 'sort_order', 'is_active'])]
 class Banner extends Model
 {
     /** @use HasFactory<BannerFactory> */
@@ -29,14 +31,22 @@ class Banner extends Model
      *
      * @var list<string>
      */
-    protected $appends = ['url'];
+    protected $appends = ['url', 'mobile_url'];
 
     /**
-     * Get the public URL of the banner image.
+     * Get the public URL of the desktop banner image.
      */
     public function getUrlAttribute(): ?string
     {
         return $this->image ? Storage::disk('public')->url($this->image) : null;
+    }
+
+    /**
+     * Get the public URL of the mobile banner image.
+     */
+    public function getMobileUrlAttribute(): ?string
+    {
+        return $this->image_mobile ? Storage::disk('public')->url($this->image_mobile) : null;
     }
 
     /**
