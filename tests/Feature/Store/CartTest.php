@@ -127,16 +127,14 @@ test('the cart page shows an empty state', function () {
             ->where('cartItems', []));
 });
 
-test('a pre-order item is priced at its full price with a separate down payment', function () {
+test('a cart item down payment is derived from the product', function () {
     $product = Product::factory()->preOrder()->create([
         'name' => 'Paradox Rift Booster Box',
         'price' => '149.99',
+        'down_payment' => '50.00',
         'stock' => 10,
     ]);
-    session([
-        'cart.items' => [$product->id => 2],
-        'cart.down_payments' => [$product->id => 50],
-    ]);
+    session(['cart.items' => [$product->id => 2]]);
 
     $this->get(route('cart.index'))
         ->assertOk()
@@ -144,15 +142,16 @@ test('a pre-order item is priced at its full price with a separate down payment'
             ->component('store/cart')
             ->where('cartItems.0.unit_price', 149.99)
             ->where('cartItems.0.subtotal', 299.98)
-            ->where('cartItems.0.down_payment', 50)
+            ->where('cartItems.0.down_payment', 100)
             ->where('subtotal', 299.98)
-            ->where('downPayment', 50)
+            ->where('downPayment', 100)
             ->where('total', 299.98));
 });
 
-test('a pre-order item without a down payment is priced at its full price', function () {
+test('a product without a down payment shows no down payment', function () {
     $product = Product::factory()->preOrder()->create([
         'price' => '149.99',
+        'down_payment' => '0.00',
         'stock' => 10,
     ]);
     session(['cart.items' => [$product->id => 1]]);
@@ -167,19 +166,37 @@ test('a pre-order item without a down payment is priced at its full price', func
             ->where('downPayment', 0));
 });
 
-test('a pre-order down payment is stored when adding to the cart', function () {
-    $product = Product::factory()->preOrder()->create([
+test('the cart down payment is clamped below the item subtotal', function () {
+    $product = Product::factory()->create([
+        'status' => Product::STATUS_READY,
         'price' => '100.00',
+        'down_payment' => '500.00',
         'stock' => 10,
     ]);
+    session(['cart.items' => [$product->id => 1]]);
 
-    $this->post(route('cart.store', $product), [
-        'quantity' => 2,
-        'down_payment' => 150,
-    ])->assertRedirect();
+    $this->get(route('cart.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('store/cart')
+            ->where('cartItems.0.down_payment', 99.99)
+            ->where('downPayment', 99.99));
+});
 
-    $this->assertSame(2, session('cart.items.'.$product->id));
-    $this->assertSame(150.0, (float) session('cart.down_payments.'.$product->id));
+test('a ready product can carry a down payment', function () {
+    $product = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'price' => '100.00',
+        'down_payment' => '30.00',
+        'stock' => 10,
+    ]);
+    session(['cart.items' => [$product->id => 1]]);
+
+    $this->get(route('cart.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('cartItems.0.down_payment', 30)
+            ->where('downPayment', 30));
 });
 
 test('a pre-order product cannot exceed its available stock', function () {
@@ -207,76 +224,13 @@ test('a pre-order quantity update beyond stock is rejected', function () {
     $this->assertSame(1, session('cart.items.'.$product->id));
 });
 
-test('a down payment must be lower than the item subtotal', function () {
-    $product = Product::factory()->preOrder()->create([
-        'price' => '100.00',
-        'stock' => 10,
-    ]);
-
-    $this->post(route('cart.store', $product), [
-        'quantity' => 2,
-        'down_payment' => 200,
-    ])->assertRedirect();
-
-    $this->assertNull(session('cart.items.'.$product->id));
-});
-
-test('a ready product ignores any submitted down payment', function () {
-    $product = Product::factory()->create([
-        'status' => Product::STATUS_READY,
-        'price' => '100.00',
-    ]);
-
-    $this->post(route('cart.store', $product), [
-        'quantity' => 1,
-        'down_payment' => 50,
-    ])->assertRedirect();
-
-    $this->assertSame(1, session('cart.items.'.$product->id));
-    $this->assertNull(session('cart.down_payments.'.$product->id));
-});
-
-test('a cart item down payment can be updated', function () {
-    $product = Product::factory()->preOrder()->create([
-        'price' => '100.00',
-    ]);
-    session([
-        'cart.items' => [$product->id => 1],
-        'cart.down_payments' => [$product->id => 25],
-    ]);
-
-    $this->patch(route('cart.update', $product), ['down_payment' => 60])
-        ->assertRedirect();
-
-    $this->assertSame(60.0, (float) session('cart.down_payments.'.$product->id));
-});
-
-test('a cart item down payment above the subtotal is rejected', function () {
-    $product = Product::factory()->preOrder()->create([
-        'price' => '100.00',
-    ]);
-    session([
-        'cart.items' => [$product->id => 1],
-        'cart.down_payments' => [$product->id => 25],
-    ]);
-
-    $this->patch(route('cart.update', $product), ['down_payment' => 100])
-        ->assertRedirect();
-
-    $this->assertSame(25.0, (float) session('cart.down_payments.'.$product->id));
-});
-
-test('removing a cart item also removes its down payment', function () {
+test('removing a cart item removes it from the session', function () {
     $product = Product::factory()->preOrder()->create();
-    session([
-        'cart.items' => [$product->id => 1],
-        'cart.down_payments' => [$product->id => 25],
-    ]);
+    session(['cart.items' => [$product->id => 1]]);
 
     $this->delete(route('cart.destroy', $product))->assertRedirect();
 
     $this->assertNull(session('cart.items.'.$product->id));
-    $this->assertNull(session('cart.down_payments.'.$product->id));
 });
 
 test('cart quantities are clamped when stock drops below the cart quantity', function () {

@@ -21,11 +21,9 @@ class PaymentMethodFactory extends Factory
 
         return [
             'name' => $name,
+            'account_name' => fake()->name(),
             'code' => fake()->unique()->numerify('09#########'),
-            'description' => fake()->sentence(),
-            'instructions' => fake()->paragraph(),
             'is_active' => true,
-            'sort_order' => 0,
         ];
     }
 

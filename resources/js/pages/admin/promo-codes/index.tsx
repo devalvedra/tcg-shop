@@ -332,9 +332,7 @@ export default function PromoCodesIndex({ promoCodes, filters }: Props) {
                                 </h2>
                                 <p className="max-w-sm text-sm text-muted-foreground">
                                     {filters.search || filters.status
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Create a discount code to start rewarding your customers.',
                                           )}

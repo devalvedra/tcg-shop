@@ -403,9 +403,7 @@ export default function ProductsIndex({
                                     {filters.search ||
                                     filters.status ||
                                     filters.category
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Add your first product to start building your catalog.',
                                           )}

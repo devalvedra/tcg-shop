@@ -3,10 +3,8 @@ import { CreditCard } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { t } from '@/lib/i18n';
 import {
     index as paymentMethodsIndex,
@@ -21,23 +19,22 @@ type Props = {
 
 type PaymentMethodFormData = {
     name: string;
+    account_name: string;
     code: string;
-    description: string;
-    instructions: string;
     is_active: boolean;
-    sort_order: string;
 };
+
+const nativeSelectClasses =
+    'mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
 export function PaymentMethodForm({ paymentMethod }: Props) {
     const isEdit = Boolean(paymentMethod);
 
     const form = useForm<PaymentMethodFormData>({
         name: paymentMethod?.name ?? '',
+        account_name: paymentMethod?.account_name ?? '',
         code: paymentMethod?.code ?? '',
-        description: paymentMethod?.description ?? '',
-        instructions: paymentMethod?.instructions ?? '',
         is_active: paymentMethod?.is_active ?? true,
-        sort_order: paymentMethod?.sort_order?.toString() ?? '0',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -67,7 +64,6 @@ export function PaymentMethodForm({ paymentMethod }: Props) {
                                 onChange={(e) =>
                                     form.setData('name', e.target.value)
                                 }
-                                placeholder="GCash"
                                 autoFocus
                                 required
                                 className="mt-1"
@@ -76,105 +72,64 @@ export function PaymentMethodForm({ paymentMethod }: Props) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="code">
-                                {t('Payment code / number')}{' '}
-                                <span className="text-rose-500">*</span>
+                            <Label htmlFor="account_name">
+                                {t('Account name')}
                             </Label>
                             <Input
-                                id="code"
-                                name="code"
-                                value={form.data.code}
+                                id="account_name"
+                                name="account_name"
+                                value={form.data.account_name}
                                 onChange={(e) =>
-                                    form.setData('code', e.target.value)
+                                    form.setData('account_name', e.target.value)
                                 }
-                                placeholder="0917 123 4567 / bank account number"
-                                required
-                                className="mt-1 font-mono"
+                                className="mt-1"
                             />
-                            <InputError message={form.errors.code} />
-                            <p className="text-xs text-muted-foreground">
-                                {t(
-                                    'The number customers use to pay (e.g., GCash number or bank account number). Shown on the checkout page and copied on order.',
-                                )}
-                            </p>
+                            <InputError message={form.errors.account_name} />
                         </div>
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="description">{t('Description')}</Label>
-                        <Input
-                            id="description"
-                            name="description"
-                            value={form.data.description}
-                            onChange={(e) =>
-                                form.setData('description', e.target.value)
-                            }
-                            placeholder={t(
-                                'Shown next to the option at checkout',
-                            )}
-                            className="mt-1"
-                        />
-                        <InputError message={form.errors.description} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="instructions">
-                            {t('Instructions')}
+                        <Label htmlFor="code">
+                            {t('Payment code / number')}{' '}
+                            <span className="text-rose-500">*</span>
                         </Label>
-                        <Textarea
-                            id="instructions"
-                            name="instructions"
-                            value={form.data.instructions}
-                            onChange={(e) =>
-                                form.setData('instructions', e.target.value)
-                            }
-                            rows={4}
-                            placeholder={t(
-                                'Step-by-step payment instructions shown to customers',
-                            )}
-                            className="mt-1"
-                        />
-                        <InputError message={form.errors.instructions} />
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardContent className="grid gap-4 pt-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="sort_order">{t('Sort order')}</Label>
                         <Input
-                            id="sort_order"
-                            name="sort_order"
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={form.data.sort_order}
+                            id="code"
+                            name="code"
+                            value={form.data.code}
                             onChange={(e) =>
-                                form.setData('sort_order', e.target.value)
+                                form.setData('code', e.target.value)
                             }
-                            placeholder="0"
-                            className="mt-1"
+                            required
+                            className="mt-1 font-mono"
                         />
-                        <InputError message={form.errors.sort_order} />
+                        <InputError message={form.errors.code} />
+                        <p className="text-xs text-muted-foreground">
+                            {t(
+                                'The number customers use to pay (e.g., GCash number or bank account number). Shown on the checkout page and copied on order.',
+                            )}
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Checkbox
+                    <div className="grid gap-2 sm:max-w-xs">
+                        <Label htmlFor="is_active">{t('Status')}</Label>
+                        <select
                             id="is_active"
                             name="is_active"
-                            checked={form.data.is_active}
-                            onCheckedChange={(checked) =>
-                                form.setData('is_active', checked === true)
+                            value={form.data.is_active ? '1' : '0'}
+                            onChange={(e) =>
+                                form.setData(
+                                    'is_active',
+                                    e.target.value === '1',
+                                )
                             }
-                        />
-                        <Label htmlFor="is_active" className="font-normal">
-                            {t(
-                                'Customers can pay with this method at checkout',
-                            )}
-                        </Label>
+                            className={nativeSelectClasses}
+                        >
+                            <option value="1">{t('Active')}</option>
+                            <option value="0">{t('Not active')}</option>
+                        </select>
+                        <InputError message={form.errors.is_active} />
                     </div>
-                    <InputError message={form.errors.is_active} />
                 </CardContent>
             </Card>
 

@@ -1,8 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     CalendarClock,
     Check,
+    ChevronLeft,
+    ChevronRight,
     Minus,
     Package,
     Plus,
@@ -11,18 +13,17 @@ import {
 import { useState } from 'react';
 import { categoryIconMap, ProductCard } from '@/components/store/product-card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { currencySymbol, formatCurrency } from '@/lib/currency';
+import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
-import { catalog } from '@/routes';
+import { catalog, login } from '@/routes';
 import { store as cartStore } from '@/routes/cart';
 import { show as showProduct } from '@/routes/products';
-import type { Product } from '@/types';
+import type { Auth, Product } from '@/types';
 
 type Props = {
     product: Product;
     recommended: Product[];
+    youtubeEmbedUrl: string | null;
     cartQuantity: number;
     freeShippingThreshold: number;
 };
@@ -36,15 +37,35 @@ const statusStyles: Record<Product['status'], string> = {
 const formatDate = (date: string | null) =>
     date ? new Date(date).toLocaleDateString() : null;
 
+function ProductVideo({ url, title }: { url: string; title: string }) {
+    return (
+        <div className="overflow-hidden rounded-2xl border">
+            <div className="relative aspect-video w-full">
+                <iframe
+                    src={url}
+                    title={title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    className="absolute inset-0 size-full"
+                />
+            </div>
+        </div>
+    );
+}
+
 export default function ShowProduct({
     product,
     recommended,
+    youtubeEmbedUrl,
     cartQuantity,
     freeShippingThreshold,
 }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const isAuthenticated = Boolean(auth?.user);
+
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
-    const [downPayment, setDownPayment] = useState('');
     const [adding, setAdding] = useState(false);
 
     const images = product.images.filter((image) => image.url);
@@ -54,10 +75,11 @@ export default function ShowProduct({
     const price = product.sell_price ?? product.price;
 
     const isPreOrder = product.status === 'pre-order';
+    const hasDownPayment =
+        product.down_payment !== null && Number(product.down_payment) > 0;
     const availableStock = Math.max(0, product.stock - cartQuantity);
     const outOfStock = availableStock === 0;
     const maxQuantity = Math.max(1, availableStock);
-    const itemSubtotal = Number(price) * quantity;
 
     const now = new Date();
     const openDate = product.open_po_date
@@ -80,11 +102,18 @@ export default function ShowProduct({
         setAdding(true);
         router.post(
             cartStore.url({ product: product.id }),
-            {
-                quantity,
-                down_payment: isPreOrder ? downPayment : undefined,
-            },
+            { quantity },
             { preserveScroll: true, onFinish: () => setAdding(false) },
+        );
+    };
+
+    const slideImage = (direction: number) => {
+        if (images.length < 2) {
+            return;
+        }
+
+        setSelectedImage(
+            (current) => (current + direction + images.length) % images.length,
         );
     };
 
@@ -106,7 +135,7 @@ export default function ShowProduct({
 
                 <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div>
-                        <div className="flex h-96 items-center justify-center overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
+                        <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
                             {mainImage ? (
                                 <img
                                     src={mainImage}
@@ -118,15 +147,37 @@ export default function ShowProduct({
                                     <Icon className="size-10" />
                                 </div>
                             )}
+
+                            {images.length > 1 && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => slideImage(-1)}
+                                        aria-label={t('Previous image')}
+                                        className="absolute top-1/2 left-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/80 text-foreground shadow-sm backdrop-blur transition hover:bg-background"
+                                    >
+                                        <ChevronLeft className="size-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => slideImage(1)}
+                                        aria-label={t('Next image')}
+                                        className="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/80 text-foreground shadow-sm backdrop-blur transition hover:bg-background"
+                                    >
+                                        <ChevronRight className="size-4" />
+                                    </button>
+                                </>
+                            )}
                         </div>
+
                         {images.length > 1 && (
-                            <div className="mt-3 flex gap-3">
+                            <div className="image-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
                                 {images.map((image, index) => (
                                     <button
                                         key={image.id}
                                         type="button"
                                         onClick={() => setSelectedImage(index)}
-                                        className={`size-16 overflow-hidden rounded-lg border-2 transition ${
+                                        className={`size-16 shrink-0 overflow-hidden rounded-lg border transition ${
                                             index === selectedImage
                                                 ? 'border-indigo-500'
                                                 : 'border-transparent opacity-70 hover:opacity-100'
@@ -166,17 +217,19 @@ export default function ShowProduct({
                             {product.name}
                         </h1>
 
-                        <div className="flex flex-col gap-1">
-                            <span className="text-3xl font-semibold">
-                                {formatCurrency(price)}
-                            </span>
-                            {isPreOrder && (
-                                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                                    {t('Pre-order')} —{' '}
-                                    {t('pay a down payment to reserve')}
+                        {isAuthenticated && (
+                            <div className="flex flex-col gap-1">
+                                <span className="text-4xl font-bold tracking-tight tabular-nums">
+                                    {formatCurrency(price)}
                                 </span>
-                            )}
-                        </div>
+                                {isPreOrder && (
+                                    <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                                        {t('Pre-order')} —{' '}
+                                        {t('pay a down payment to reserve')}
+                                    </span>
+                                )}
+                            </div>
+                        )}
 
                         {isPreOrder &&
                             (preOrderOpen ? (
@@ -251,49 +304,46 @@ export default function ShowProduct({
                             )}
                         </div>
 
+                        {youtubeEmbedUrl && (
+                            <div className="lg:hidden">
+                                <ProductVideo
+                                    url={youtubeEmbedUrl}
+                                    title={product.name}
+                                />
+                            </div>
+                        )}
+
                         {product.description && (
                             <p className="text-sm leading-relaxed text-muted-foreground">
                                 {product.description}
                             </p>
                         )}
 
-                        <div className="flex flex-col gap-2 border-t pt-5">
-                            {isPreOrder && preOrderOpen && (
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="down_payment">
-                                        {t('Optional down payment ({symbol})', {
-                                            symbol: currencySymbol(),
-                                        })}{' '}
-                                        <span className="text-muted-foreground">
-                                            {t('(optional)')}
-                                        </span>
-                                    </Label>
-                                    <Input
-                                        id="down_payment"
-                                        name="down_payment"
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        max={itemSubtotal}
-                                        placeholder="0.00"
-                                        value={downPayment}
-                                        onChange={(e) =>
-                                            setDownPayment(e.target.value)
-                                        }
-                                    />
-                                    <p className="text-xs text-muted-foreground">
+                        <div className="flex flex-col gap-3 border-t pt-5">
+                            {hasDownPayment && (
+                                <div className="rounded-lg border bg-amber-50 px-3 py-2.5 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                                    <p className="font-medium">
                                         {t(
-                                            'Pay a portion now to reserve your order. Must be lower than the item subtotal of {amount}.',
-                                            {
-                                                amount: formatCurrency(
-                                                    itemSubtotal,
-                                                ),
-                                            },
+                                            'You have to pay down payment for this product',
                                         )}
+                                    </p>
+                                    <p className="mt-0.5">
+                                        {formatCurrency(product.down_payment)}
                                     </p>
                                 </div>
                             )}
-                            {outOfStock || (isPreOrder && !preOrderOpen) ? (
+
+                            {!isAuthenticated ? (
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="w-full sm:w-auto"
+                                >
+                                    <Link href={login()}>
+                                        {t('Log in to purchase')}
+                                    </Link>
+                                </Button>
+                            ) : outOfStock || (isPreOrder && !preOrderOpen) ? (
                                 <Button
                                     size="lg"
                                     className="w-full sm:w-auto"
@@ -379,6 +429,27 @@ export default function ShowProduct({
                     </div>
                 </div>
 
+                {youtubeEmbedUrl && (
+                    <section className="mt-16 hidden border-t pt-10 lg:block">
+                        <div className="flex items-end justify-between">
+                            <div>
+                                <h2 className="text-2xl font-semibold tracking-tight">
+                                    {t('Product video')}
+                                </h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {t('Watch a video about this product')}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-6">
+                            <ProductVideo
+                                url={youtubeEmbedUrl}
+                                title={product.name}
+                            />
+                        </div>
+                    </section>
+                )}
+
                 {recommended.length > 0 && (
                     <section className="mt-16 border-t pt-10">
                         <div className="flex items-end justify-between">
@@ -404,7 +475,7 @@ export default function ShowProduct({
                             </Button>
                         </div>
 
-                        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
                             {recommended.map((recommendedProduct) => (
                                 <ProductCard
                                     key={recommendedProduct.id}

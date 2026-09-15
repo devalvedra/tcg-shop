@@ -21,9 +21,11 @@ class ProductFactory extends Factory
         return [
             'name' => ucfirst(rtrim(fake()->sentence(3), '.')),
             'description' => fake()->paragraph(),
+            'youtube_link' => null,
             'category' => fn (): string => (ProductCategory::inRandomOrder()->first() ?? ProductCategory::factory()->create())->slug,
             'price' => fake()->randomFloat(2, 5, 300),
             'sell_price' => null,
+            'down_payment' => 0,
             'stock' => fake()->numberBetween(0, 100),
             'status' => Product::STATUS_READY,
             'open_po_date' => null,

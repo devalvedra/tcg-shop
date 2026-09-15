@@ -86,7 +86,6 @@ test('a customer can place an order from the cart', function () {
     $this->assertSame(Order::PAYMENT_STATUS_UNPAID, $order->payment_status);
     $this->assertSame('200.00', $order->total);
     $this->assertSame('0.00', $order->down_payment);
-    $this->assertSame(Order::DOWN_PAYMENT_STATUS_UNPAID, $order->down_payment_status);
 
     $this->assertDatabaseHas('order_items', [
         'order_id' => $order->id,
@@ -203,7 +202,7 @@ test('inactive payment methods are hidden from checkout', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('paymentMethods', 3)
-            ->where('paymentMethods.0.code', '09181234567'));
+            ->where('paymentMethods.2.code', '09181234567'));
 });
 
 test('an inactive payment method is rejected at checkout', function () {
@@ -249,18 +248,16 @@ test('a customer cannot view another customers order confirmation', function () 
         ->assertForbidden();
 });
 
-test('a pre-order product is charged its full price with the chosen down payment', function () {
+test('a pre-order product is charged its full price with the product down payment', function () {
     $user = User::factory()->create();
     $address = Address::factory()->create(['user_id' => $user->id]);
     $product = Product::factory()->preOrder()->create([
         'name' => 'Paradox Rift Booster Box',
         'price' => '149.99',
+        'down_payment' => '75.00',
         'stock' => 10,
     ]);
-    session([
-        'cart.items' => [$product->id => 2],
-        'cart.down_payments' => [$product->id => 150],
-    ]);
+    session(['cart.items' => [$product->id => 2]]);
 
     $this->actingAs($user)
         ->post(route('checkout.store'), [
@@ -274,7 +271,6 @@ test('a pre-order product is charged its full price with the chosen down payment
     $this->assertSame('299.98', $order->subtotal);
     $this->assertSame('299.98', $order->total);
     $this->assertSame('150.00', $order->down_payment);
-    $this->assertSame(Order::DOWN_PAYMENT_STATUS_UNPAID, $order->down_payment_status);
 
     $this->assertDatabaseHas('order_items', [
         'order_id' => $order->id,
@@ -311,12 +307,10 @@ test('the checkout page exposes the total down payment', function () {
     $user = User::factory()->create();
     $product = Product::factory()->preOrder()->create([
         'price' => '149.99',
+        'down_payment' => '50.00',
         'stock' => 10,
     ]);
-    session([
-        'cart.items' => [$product->id => 1],
-        'cart.down_payments' => [$product->id => 50],
-    ]);
+    session(['cart.items' => [$product->id => 1]]);
 
     $this->actingAs($user)
         ->get(route('checkout.index'))

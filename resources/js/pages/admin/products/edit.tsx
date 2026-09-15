@@ -13,9 +13,15 @@ type Props = {
     product: Product;
     categories: Record<string, string>;
     statuses: Record<string, string>;
+    generalDescription?: string | null;
 };
 
-export default function EditProduct({ product, categories, statuses }: Props) {
+export default function EditProduct({
+    product,
+    categories,
+    statuses,
+    generalDescription,
+}: Props) {
     return (
         <>
             <Head title={t('Edit {name}', { name: product.name })} />
@@ -28,7 +34,7 @@ export default function EditProduct({ product, categories, statuses }: Props) {
                 >
                     <Link href={showProduct({ product: product.id })}>
                         <ArrowLeft className="size-4" />
-                        {t('Back to product')}
+                        {t('Back to products')}
                     </Link>
                 </Button>
 
@@ -48,6 +54,7 @@ export default function EditProduct({ product, categories, statuses }: Props) {
                     product={product}
                     categories={categories}
                     statuses={statuses}
+                    generalDescription={generalDescription}
                 />
             </div>
         </>

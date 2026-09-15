@@ -1,5 +1,5 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
-import { Check, Download, Eye, Search, ShoppingCart, X } from 'lucide-react';
+import { Download, Eye, Search, ShoppingCart } from 'lucide-react';
 import OrderController from '@/actions/App/Http/Controllers/Admin/OrderController';
 import { SortableTh } from '@/components/sortable-th';
 import type { SortDirection } from '@/components/sortable-th';
@@ -14,11 +14,12 @@ import {
     show as showOrder,
     update as updateOrder,
 } from '@/routes/admin/orders';
-import type { Order, OrderStatus, PaginatedData } from '@/types';
+import type { Order, OrderStatus, PaginatedData, PaymentStatus } from '@/types';
 
 type Filters = {
     search?: string;
     status?: string;
+    payment_status?: string;
     from?: string;
     to?: string;
     sort?: string;
@@ -29,6 +30,7 @@ type Props = {
     orders: PaginatedData<Order>;
     filters: Filters;
     statuses: Record<string, string>;
+    paymentStatuses: Record<string, string>;
 };
 
 const nativeSelectClasses =
@@ -37,10 +39,18 @@ const nativeSelectClasses =
 const inlineSelectClasses =
     'h-8 rounded-md border border-input bg-background px-2 text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
-export default function OrdersIndex({ orders, filters, statuses }: Props) {
+export default function OrdersIndex({
+    orders,
+    filters,
+    statuses,
+    paymentStatuses,
+}: Props) {
     const activeFilters = {
         ...(filters.search ? { search: filters.search } : {}),
         ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.payment_status
+            ? { payment_status: filters.payment_status }
+            : {}),
         ...(filters.from ? { from: filters.from } : {}),
         ...(filters.to ? { to: filters.to } : {}),
     };
@@ -60,7 +70,11 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
 
     const sortHref = (sortKey: string, sortDirection: SortDirection) =>
         ordersIndex.url({
-            query: { ...activeFilters, sort: sortKey, direction: sortDirection },
+            query: {
+                ...activeFilters,
+                sort: sortKey,
+                direction: sortDirection,
+            },
         });
 
     const changeStatus = (order: Order, status: OrderStatus) => {
@@ -71,52 +85,13 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
         );
     };
 
-    const togglePaid = (order: Order) => {
-        const next =
-            order.payment_status === 'paid' ? 'unpaid' : 'paid';
-
-        const confirmed = window.confirm(
-            next === 'paid'
-                ? t('Mark order {number} as paid?', {
-                      number: order.order_number,
-                  })
-                : t('Mark order {number} as unpaid?', {
-                      number: order.order_number,
-                  }),
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
+    const changePaymentStatus = (
+        order: Order,
+        paymentStatus: PaymentStatus,
+    ) => {
         router.put(
             updateOrder.url({ order: order.id }),
-            { payment_status: next },
-            { preserveScroll: true },
-        );
-    };
-
-    const toggleDownPayment = (order: Order) => {
-        const next =
-            order.down_payment_status === 'paid' ? 'unpaid' : 'paid';
-
-        const confirmed = window.confirm(
-            next === 'paid'
-                ? t('Mark down payment for order {number} as paid?', {
-                      number: order.order_number,
-                  })
-                : t('Mark down payment for order {number} as unpaid?', {
-                      number: order.order_number,
-                  }),
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        router.put(
-            updateOrder.url({ order: order.id }),
-            { down_payment_status: next },
+            { payment_status: paymentStatus },
             { preserveScroll: true },
         );
     };
@@ -186,6 +161,23 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
                                         {t('All statuses')}
                                     </option>
                                     {Object.entries(statuses).map(
+                                        ([value, label]) => (
+                                            <option key={value} value={value}>
+                                                {t(label)}
+                                            </option>
+                                        ),
+                                    )}
+                                </select>
+                                <select
+                                    name="payment_status"
+                                    defaultValue={filters.payment_status}
+                                    className={nativeSelectClasses}
+                                    aria-label={t('Payment')}
+                                >
+                                    <option value="">
+                                        {t('All payments')}
+                                    </option>
+                                    {Object.entries(paymentStatuses).map(
                                         ([value, label]) => (
                                             <option key={value} value={value}>
                                                 {t(label)}
@@ -326,51 +318,11 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
                                                     {Number(
                                                         order.down_payment,
                                                     ) > 0 ? (
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="size-6 text-muted-foreground hover:bg-transparent"
-                                                                title={
-                                                                    order.down_payment_status ===
-                                                                    'paid'
-                                                                        ? t(
-                                                                              'Mark down payment as unpaid',
-                                                                          )
-                                                                        : t(
-                                                                              'Mark down payment as paid',
-                                                                          )
-                                                                }
-                                                                onClick={() =>
-                                                                    toggleDownPayment(
-                                                                        order,
-                                                                    )
-                                                                }
-                                                            >
-                                                                {order.down_payment_status ===
-                                                                'paid' ? (
-                                                                    <Check
-                                                                        className="size-4 text-emerald-600"
-                                                                        aria-label={t(
-                                                                            'Down payment paid',
-                                                                        )}
-                                                                    />
-                                                                ) : (
-                                                                    <X
-                                                                        className="size-4 text-rose-600"
-                                                                        aria-label={t(
-                                                                            'Down payment unpaid',
-                                                                        )}
-                                                                    />
-                                                                )}
-                                                            </Button>
-                                                            <span className="font-medium">
-                                                                {formatCurrency(
-                                                                    order.down_payment,
-                                                                )}
-                                                            </span>
-                                                        </div>
+                                                        <span className="font-medium">
+                                                            {formatCurrency(
+                                                                order.down_payment,
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span className="text-muted-foreground">
                                                             —
@@ -378,49 +330,45 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
                                                     )}
                                                 </td>
                                                 <td className="hidden px-4 py-3 xl:table-cell">
-                                                    {order.payment_status ===
-                                                    'refunded' ? (
-                                                        <span className="inline-flex rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground ring-1 ring-border ring-inset">
-                                                            {t('Refunded')}
-                                                        </span>
-                                                    ) : (
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-6 text-muted-foreground hover:bg-transparent"
-                                                            title={
-                                                                order.payment_status ===
-                                                                'paid'
-                                                                    ? t(
-                                                                          'Mark order as unpaid',
-                                                                      )
-                                                                    : t(
-                                                                          'Mark order as paid',
-                                                                      )
-                                                            }
-                                                            onClick={() =>
-                                                                togglePaid(order)
-                                                            }
-                                                        >
-                                                            {order.payment_status ===
-                                                            'paid' ? (
-                                                                <Check
-                                                                    className="size-4 text-emerald-600"
-                                                                    aria-label={t(
-                                                                        'Order paid',
-                                                                    )}
-                                                                />
-                                                            ) : (
-                                                                <X
-                                                                    className="size-4 text-rose-600"
-                                                                    aria-label={t(
-                                                                        'Order unpaid',
-                                                                    )}
-                                                                />
-                                                            )}
-                                                        </Button>
-                                                    )}
+                                                    <select
+                                                        value={
+                                                            order.payment_status
+                                                        }
+                                                        onChange={(e) =>
+                                                            changePaymentStatus(
+                                                                order,
+                                                                e.target
+                                                                    .value as PaymentStatus,
+                                                            )
+                                                        }
+                                                        className={
+                                                            inlineSelectClasses
+                                                        }
+                                                        aria-label={t(
+                                                            'Payment status of {number}',
+                                                            {
+                                                                number: order.order_number,
+                                                            },
+                                                        )}
+                                                    >
+                                                        {Object.entries(
+                                                            paymentStatuses,
+                                                        ).map(
+                                                            ([
+                                                                value,
+                                                                label,
+                                                            ]) => (
+                                                                <option
+                                                                    key={value}
+                                                                    value={
+                                                                        value
+                                                                    }
+                                                                >
+                                                                    {t(label)}
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
                                                 </td>
                                                 <td className="hidden px-4 py-3 md:table-cell">
                                                     <select
@@ -432,7 +380,9 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
                                                                     .value as OrderStatus,
                                                             )
                                                         }
-                                                        className={inlineSelectClasses}
+                                                        className={
+                                                            inlineSelectClasses
+                                                        }
                                                         aria-label={t(
                                                             'Status of {number}',
                                                             {
@@ -449,7 +399,9 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
                                                             ]) => (
                                                                 <option
                                                                     key={value}
-                                                                    value={value}
+                                                                    value={
+                                                                        value
+                                                                    }
                                                                 >
                                                                     {t(label)}
                                                                 </option>
@@ -499,9 +451,7 @@ export default function OrdersIndex({ orders, filters, statuses }: Props) {
                                 </h2>
                                 <p className="max-w-sm text-sm text-muted-foreground">
                                     {hasFilters
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Orders placed from your storefront will appear here.',
                                           )}

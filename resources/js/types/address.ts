@@ -4,6 +4,9 @@ export type Address = {
     receiver_name: string;
     address: string;
     city: string;
+    province: string | null;
+    district: string | null;
+    subdistrict: string | null;
     zip: string | null;
     is_default: boolean;
     label: string;

@@ -1,5 +1,11 @@
 import { Form, Head } from '@inertiajs/react';
-import { Globe, ImagePlus, Settings as SettingsIcon, Wallet, X } from 'lucide-react';
+import {
+    Globe,
+    ImagePlus,
+    Settings as SettingsIcon,
+    Wallet,
+    X,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import SettingsController from '@/actions/App/Http/Controllers/Admin/SettingsController';
 import InputError from '@/components/input-error';
@@ -26,6 +32,9 @@ type Props = {
         store_logo: string | null;
         store_logo_url: string | null;
         customer_verification: string;
+        cancel_order_enabled: string;
+        cancel_order_hours: string;
+        general_description: string | null;
         whatsapp_number: string | null;
         shipping_fee: string;
         free_shipping_threshold: string;
@@ -64,7 +73,9 @@ export default function AdminSettings({ settings }: Props) {
         }
 
         setLogoPreview(
-            file ? URL.createObjectURL(file) : (settings.store_logo_url ?? null),
+            file
+                ? URL.createObjectURL(file)
+                : (settings.store_logo_url ?? null),
         );
 
         if (file) {
@@ -126,7 +137,6 @@ export default function AdminSettings({ settings }: Props) {
                                             id="store_name"
                                             name="store_name"
                                             defaultValue={settings.store_name}
-                                            placeholder="My card shop"
                                         />
                                         <InputError
                                             message={errors.store_name}
@@ -135,17 +145,14 @@ export default function AdminSettings({ settings }: Props) {
 
                                     <div className="grid gap-2 sm:col-span-2">
                                         <Label>{t('Store logo')}</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            {t(
-                                                'Optional. Shown in the storefront and admin headers. Recommended: a square image with a transparent background.',
-                                            )}
-                                        </p>
 
                                         {currentLogo ? (
                                             <div className="relative w-fit overflow-hidden rounded-lg border">
                                                 <img
                                                     src={currentLogo}
-                                                    alt={t('Store logo preview')}
+                                                    alt={t(
+                                                        'Store logo preview',
+                                                    )}
                                                     className="h-20 w-20 object-contain p-1.5"
                                                 />
                                                 <Button
@@ -318,9 +325,7 @@ export default function AdminSettings({ settings }: Props) {
                                                 {t('Not required')}
                                             </option>
                                             <option value="1">
-                                                {t(
-                                                    'Required (admin approval)',
-                                                )}
+                                                {t('Required (admin approval)')}
                                             </option>
                                         </select>
                                         <p className="text-xs text-muted-foreground">
@@ -382,6 +387,106 @@ export default function AdminSettings({ settings }: Props) {
                                             message={
                                                 errors.free_shipping_threshold
                                             }
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="gap-0 py-5">
+                                <CardHeader className="px-5 py-0">
+                                    <CardTitle>
+                                        {t('Product defaults')}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {t(
+                                            'The general description that can be auto-filled on the product form',
+                                        )}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid gap-6 px-5 pt-6">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="general_description">
+                                            {t('General description')}
+                                        </Label>
+                                        <Textarea
+                                            id="general_description"
+                                            name="general_description"
+                                            defaultValue={
+                                                settings.general_description ??
+                                                ''
+                                            }
+                                            rows={5}
+                                            placeholder={t(
+                                                'The default description used for new products.',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={errors.general_description}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="gap-0 py-5">
+                                <CardHeader className="px-5 py-0">
+                                    <CardTitle>
+                                        {t('Order cancellation')}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {t(
+                                            'Control whether customers can cancel an order after placing it',
+                                        )}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid gap-6 px-5 pt-6 sm:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="cancel_order_enabled">
+                                            {t('Allow order cancellation')}
+                                        </Label>
+                                        <select
+                                            id="cancel_order_enabled"
+                                            name="cancel_order_enabled"
+                                            defaultValue={
+                                                settings.cancel_order_enabled
+                                            }
+                                            className={`w-full ${nativeSelectClasses}`}
+                                        >
+                                            <option value="1">
+                                                {t('Enabled')}
+                                            </option>
+                                            <option value="0">
+                                                {t('Disabled')}
+                                            </option>
+                                        </select>
+                                        <InputError
+                                            message={
+                                                errors.cancel_order_enabled
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="cancel_order_hours">
+                                            {t('Cancellation window (hours)')}
+                                        </Label>
+                                        <Input
+                                            id="cancel_order_hours"
+                                            name="cancel_order_hours"
+                                            type="number"
+                                            step="1"
+                                            min="0"
+                                            max="720"
+                                            defaultValue={
+                                                settings.cancel_order_hours
+                                            }
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            {t(
+                                                'Orders can only be cancelled while pending and within this many hours of being placed.',
+                                            )}
+                                        </p>
+                                        <InputError
+                                            message={errors.cancel_order_hours}
                                         />
                                     </div>
                                 </CardContent>

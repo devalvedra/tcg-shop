@@ -102,7 +102,7 @@ export default function PaymentMethodsIndex({
                                         {t('Active')}
                                     </option>
                                     <option value="inactive">
-                                        {t('Inactive')}
+                                        {t('Not active')}
                                     </option>
                                 </select>
                                 {filters.sort && (
@@ -145,9 +145,6 @@ export default function PaymentMethodsIndex({
                                                 getHref={sortHref}
                                                 className="hidden md:table-cell"
                                             />
-                                            <th className="hidden px-4 py-3 font-medium lg:table-cell">
-                                                {t('Description')}
-                                            </th>
                                             <SortableTh
                                                 label={t('Status')}
                                                 sortKey="status"
@@ -155,14 +152,6 @@ export default function PaymentMethodsIndex({
                                                 direction={direction}
                                                 getHref={sortHref}
                                                 className="hidden md:table-cell"
-                                            />
-                                            <SortableTh
-                                                label={t('Sort')}
-                                                sortKey="sort"
-                                                sort={filters.sort}
-                                                direction={direction}
-                                                getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
@@ -186,12 +175,6 @@ export default function PaymentMethodsIndex({
                                                 <td className="hidden px-4 py-3 font-mono text-xs md:table-cell">
                                                     {method.code}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
-                                                    <span className="line-clamp-1">
-                                                        {method.description ??
-                                                            '—'}
-                                                    </span>
-                                                </td>
                                                 <td className="hidden px-4 py-3 md:table-cell">
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
@@ -202,11 +185,8 @@ export default function PaymentMethodsIndex({
                                                     >
                                                         {method.is_active
                                                             ? t('Active')
-                                                            : t('Inactive')}
+                                                            : t('Not active')}
                                                     </span>
-                                                </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
-                                                    {method.sort_order}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center justify-end gap-1">
@@ -290,9 +270,7 @@ export default function PaymentMethodsIndex({
                                 </h2>
                                 <p className="max-w-sm text-sm text-muted-foreground">
                                     {filters.search || filters.status
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Add a payment method to let customers pay for their orders.',
                                           )}

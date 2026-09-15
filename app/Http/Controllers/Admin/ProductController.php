@@ -8,6 +8,8 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductImage;
+use App\Models\ShopSetting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,6 +68,7 @@ class ProductController extends Controller
         return Inertia::render('admin/products/create', [
             'categories' => ProductCategory::options(),
             'statuses' => Product::STATUS_LABELS,
+            'generalDescription' => ShopSetting::get('general_description'),
         ]);
     }
 
@@ -75,10 +78,11 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request): RedirectResponse
     {
         $product = Product::create(
-            $request->safe()->except(['images', 'delete_images']),
+            $request->safe()->except(['images', 'delete_images', 'image_order']),
         );
 
-        $this->storeImages($request, $product);
+        $newImages = $this->storeImages($request, $product);
+        $this->applyImageOrder($request, $product, $newImages);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.product_created')]);
 
@@ -110,6 +114,7 @@ class ProductController extends Controller
             'product' => $product,
             'categories' => ProductCategory::options(),
             'statuses' => Product::STATUS_LABELS,
+            'generalDescription' => ShopSetting::get('general_description'),
         ]);
     }
 
@@ -119,11 +124,13 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         $product->update(
-            $request->safe()->except(['images', 'delete_images']),
+            $request->safe()->except(['images', 'delete_images', 'image_order']),
         );
 
         $this->removeImages($request, $product);
-        $this->storeImages($request, $product);
+
+        $newImages = $this->storeImages($request, $product);
+        $this->applyImageOrder($request, $product, $newImages);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.product_updated')]);
 
@@ -148,22 +155,65 @@ class ProductController extends Controller
 
     /**
      * Persist the uploaded images for the given product.
+     *
+     * @return array<int, ProductImage>
      */
-    private function storeImages(Request $request, Product $product): void
+    private function storeImages(Request $request, Product $product): array
     {
         if (! $request->hasFile('images')) {
-            return;
+            return [];
         }
 
         $maxSort = $product->images()->max('sort_order') ?? -1;
 
+        $created = [];
+
         foreach ($request->file('images') as $index => $image) {
             $path = $image->store('products', 'public');
 
-            $product->images()->create([
+            $created[] = $product->images()->create([
                 'image' => $path,
                 'sort_order' => $maxSort + $index + 1,
             ]);
+        }
+
+        return $created;
+    }
+
+    /**
+     * Apply the submitted image order to the product's images.
+     *
+     * The order is a list where existing images are referenced as "id:{id}"
+     * and freshly uploaded images as "new:{index}" (their position in the
+     * uploaded files array).
+     *
+     * @param  array<int, ProductImage>  $newImages
+     */
+    private function applyImageOrder(Request $request, Product $product, array $newImages): void
+    {
+        $order = $request->input('image_order');
+
+        if (! is_array($order) || $order === []) {
+            return;
+        }
+
+        $position = 0;
+
+        foreach ($order as $entry) {
+            $image = null;
+
+            if (is_string($entry) && str_starts_with($entry, 'id:')) {
+                $image = $product->images()->whereKey((int) substr($entry, 3))->first();
+            } elseif (is_string($entry) && str_starts_with($entry, 'new:')) {
+                $image = $newImages[(int) substr($entry, 4)] ?? null;
+            }
+
+            if ($image === null) {
+                continue;
+            }
+
+            $image->update(['sort_order' => $position]);
+            $position++;
         }
     }
 

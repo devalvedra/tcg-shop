@@ -30,11 +30,7 @@ export default function AuthCardLayout({
                 >
                     <div className="flex h-9 w-9 items-center justify-center">
                         {logo ? (
-                            <img
-                                src={logo}
-                                alt="Logo"
-                                className="h-9 w-auto"
-                            />
+                            <img src={logo} alt="Logo" className="h-9 w-auto" />
                         ) : (
                             <AppLogoIcon className="size-9 fill-current text-black dark:text-white" />
                         )}

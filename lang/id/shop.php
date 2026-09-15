@@ -68,6 +68,8 @@ return [
     'checkout_preorder_closed' => ':product sudah tidak tersedia untuk pre-order.',
 
     'order_only_pending_cancel' => 'Hanya pesanan dengan status menunggu yang dapat dibatalkan.',
+    'order_cannot_cancel' => 'Pesanan ini sudah tidak dapat dibatalkan.',
+    'order_notes_updated' => 'Catatan pesanan berhasil diperbarui.',
     'order_cancelled' => 'Pesanan berhasil dibatalkan.',
     'order_updated' => 'Pesanan berhasil diperbarui.',
 

@@ -95,8 +95,9 @@ export default function ShowCustomer({
                                 className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${customerStatusStyles[customer.status ?? 'verified']}`}
                             >
                                 {t(
-                                    customerStatuses[customer.status ?? 'verified'] ??
-                                        'Verified',
+                                    customerStatuses[
+                                        customer.status ?? 'verified'
+                                    ] ?? 'Verified',
                                 )}
                             </span>
                         </div>

@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { CheckCircle2, MapPin, Package } from 'lucide-react';
+import { CheckCircle2, MapPin, MessageCircle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
@@ -10,17 +10,48 @@ import type { Order } from '@/types';
 type Props = {
     order: Order;
     paymentMethods: Record<string, string>;
+    whatsappNumber: string | null;
 };
 
-export default function OrderConfirmation({ order, paymentMethods }: Props) {
+export default function OrderConfirmation({
+    order,
+    paymentMethods,
+    whatsappNumber,
+}: Props) {
     const placedAt = new Date(order.created_at).toLocaleString();
     const shippingLabel = [
         order.shipping_address,
+        order.shipping_subdistrict,
+        order.shipping_district,
         order.shipping_city,
+        order.shipping_province,
         order.shipping_zip,
     ]
         .filter(Boolean)
         .join(', ');
+
+    const itemsText = order.items
+        .map((item) => `${item.product_name} x${item.quantity}`)
+        .join(', ');
+
+    const messageLines = [
+        t('Order number: {number}', { number: order.order_number }),
+        t("Hello, I'm sending my order: {items}.", { items: itemsText }),
+    ];
+
+    if (Number(order.down_payment) > 0) {
+        messageLines.push(
+            t('I have paid DP: {amount}', {
+                amount: formatCurrency(order.down_payment),
+            }),
+        );
+    }
+
+    const whatsappMessage = messageLines.join('\n');
+    const whatsappDigits = (whatsappNumber ?? '').replace(/\D/g, '');
+    const whatsappLink = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
+        whatsappMessage,
+    )}`;
 
     return (
         <>
@@ -154,6 +185,37 @@ export default function OrderConfirmation({ order, paymentMethods }: Props) {
                         </div>
                     </CardContent>
                 </Card>
+
+                {whatsappDigits && (
+                    <Card className="mt-6">
+                        <CardContent className="flex flex-col gap-3">
+                            <h2 className="flex items-center gap-2 text-lg font-semibold">
+                                <MessageCircle className="size-5 text-emerald-600" />
+                                {t('Send your order on WhatsApp')}
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                {t(
+                                    'Preview the message below before sending it to the store.',
+                                )}
+                            </p>
+                            <div className="min-w-0 rounded-lg bg-muted p-4">
+                                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                                    {whatsappMessage}
+                                </p>
+                            </div>
+                            <Button asChild className="w-fit">
+                                <a
+                                    href={whatsappLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <MessageCircle className="size-4" />
+                                    {t('Send on WhatsApp')}
+                                </a>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
 
                 <div className="mt-8 flex justify-center">
                     <Button asChild>

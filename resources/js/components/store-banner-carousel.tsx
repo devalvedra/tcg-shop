@@ -72,7 +72,7 @@ export function StoreBannerCarousel({ banners }: Props) {
                     {banners.map((item, bannerIndex) => (
                         <div key={item.id} className="relative w-full shrink-0">
                             {item.url ? (
-                                <div className="relative aspect-[21/7] w-full">
+                                <div className="relative aspect-[3/2] w-full sm:aspect-[21/7]">
                                     <img
                                         src={item.url}
                                         srcSet={
@@ -84,15 +84,11 @@ export function StoreBannerCarousel({ banners }: Props) {
                                         sizes="100vw"
                                         alt={item.title}
                                         loading={
-                                            bannerIndex === 0
-                                                ? 'eager'
-                                                : 'lazy'
+                                            bannerIndex === 0 ? 'eager' : 'lazy'
                                         }
                                         decoding="async"
                                         fetchPriority={
-                                            bannerIndex === 0
-                                                ? 'high'
-                                                : 'auto'
+                                            bannerIndex === 0 ? 'high' : 'auto'
                                         }
                                         className="absolute inset-0 h-full w-full object-cover"
                                     />
@@ -104,7 +100,7 @@ export function StoreBannerCarousel({ banners }: Props) {
                                     ) : null}
                                 </div>
                             ) : (
-                                <div className="relative aspect-[21/7] w-full bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600">
+                                <div className="relative aspect-[3/2] w-full bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 sm:aspect-[21/7]">
                                     <div
                                         aria-hidden
                                         className="pointer-events-none absolute -top-16 -right-16 size-72 rounded-full bg-white/10 blur-3xl"

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -45,6 +46,38 @@ test('the selling products report shows the units sold per product', function ()
             ->where('rows.0.stock', 0)
             ->where('rows.0.units_sold', 5)
             ->where('rows.0.total_revenue', 500));
+});
+
+test('the selling products report can be filtered by product type', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $ready = Product::factory()->create(['status' => Product::STATUS_READY]);
+    $preOrder = Product::factory()->preOrder()->create();
+
+    foreach ([$ready, $preOrder] as $product) {
+        $order = Order::factory()->create([
+            'customer_id' => $customer->id,
+            'status' => Order::STATUS_COMPLETED,
+        ]);
+
+        $order->items()->create([
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'unit_price' => '10.00',
+            'quantity' => 1,
+            'subtotal' => '10.00',
+        ]);
+    }
+
+    $this->actingAs($admin)
+        ->get(route('admin.reports.selling-products', ['type' => Product::STATUS_READY]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('rows', 1)
+            ->where('rows.0.product_name', $ready->name)
+            ->where('rows.0.product_status', Product::STATUS_READY)
+            ->where('filters.type', Product::STATUS_READY));
 });
 
 test('the customer order report lists one row per product line', function () {

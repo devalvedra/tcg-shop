@@ -23,63 +23,21 @@ type Props = {
 };
 
 function DownPaymentCell({ item }: { item: CartItem }) {
-    const max = Math.max(0, Number((item.subtotal - 0.01).toFixed(2)));
-    const initial = item.down_payment > 0 ? item.down_payment.toFixed(2) : '';
-    const [value, setValue] = useState(initial);
-    const [committed, setCommitted] = useState(initial);
-
-    const commit = () => {
-        const next = value.trim() === '' ? 0 : Number(value);
-
-        if (Number.isNaN(next)) {
-            return;
-        }
-
-        const clamped = Math.max(0, Math.min(next, max));
-        const nextValue = clamped > 0 ? clamped.toFixed(2) : '';
-
-        setValue(nextValue);
-
-        if (nextValue === committed) {
-            return;
-        }
-
-        setCommitted(nextValue);
-
-        router.patch(
-            updateCart.url({ product: item.product.id }),
-            { down_payment: clamped },
-            { preserveScroll: true },
-        );
-    };
-
     return (
         <div className="mt-2 grid gap-1">
             <div className="flex items-center gap-1.5">
-                <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    max={max}
-                    placeholder="0.00"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onBlur={commit}
-                    className="h-8 w-28"
-                    aria-label={t('Down payment for {name}', {
-                        name: item.product.name,
-                    })}
-                />
+                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                    {formatCurrency(item.down_payment)}
+                </span>
                 <span className="text-[10px] font-medium tracking-wide text-amber-600 uppercase dark:text-amber-400">
                     {t('Down payment')}
                 </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">
-                {t('Optional')} —{' '}
-                {t('max {max}', {
-                    max: formatCurrency(max),
-                })}
-            </p>
+            {item.down_payment > 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                    {t('You have to pay down payment for this product')}
+                </p>
+            )}
         </div>
     );
 }
@@ -143,9 +101,7 @@ function QuantityInput({
                 inputMode="numeric"
                 autoComplete="off"
                 value={value}
-                onChange={(e) =>
-                    setValue(e.target.value.replace(/\D+/g, ''))
-                }
+                onChange={(e) => setValue(e.target.value.replace(/\D+/g, ''))}
                 onBlur={commit}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -289,8 +245,7 @@ export default function Cart({
                                                             item.unit_price,
                                                         )}
                                                     </p>
-                                                    {item.product.status ===
-                                                        'pre-order' && (
+                                                    {item.down_payment > 0 && (
                                                         <DownPaymentCell
                                                             key={`${item.product.id}-${item.quantity}`}
                                                             item={item}

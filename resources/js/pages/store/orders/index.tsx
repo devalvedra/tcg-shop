@@ -7,7 +7,6 @@ import { t } from '@/lib/i18n';
 import { catalog } from '@/routes';
 import { index as ordersIndex, show as showOrder } from '@/routes/orders';
 import type {
-    DownPaymentStatus,
     OrderStatus,
     PaginatedData,
     PaymentMethod,
@@ -21,7 +20,6 @@ type OrderListItem = {
     payment_method: PaymentMethod | null;
     payment_status: PaymentStatus;
     down_payment: string;
-    down_payment_status: DownPaymentStatus;
     total: string;
     created_at: string;
     items_count: number;
@@ -32,7 +30,6 @@ type Props = {
     statuses: Record<string, string>;
     paymentMethods: Record<string, string>;
     paymentStatuses: Record<string, string>;
-    downPaymentStatuses: Record<string, string>;
 };
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -46,12 +43,7 @@ const statusStyles: Record<OrderStatus, string> = {
 
 const paymentStyles: Record<PaymentStatus, string> = {
     unpaid: 'bg-rose-50 text-rose-700 ring-rose-600/20',
-    paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    refunded: 'bg-muted text-muted-foreground ring-border',
-};
-
-const downPaymentStyles: Record<DownPaymentStatus, string> = {
-    unpaid: 'bg-rose-50 text-rose-700 ring-rose-600/20',
+    dp: 'bg-amber-50 text-amber-700 ring-amber-600/20',
     paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
 };
 
@@ -60,13 +52,12 @@ export default function MyOrders({
     statuses,
     paymentMethods,
     paymentStatuses,
-    downPaymentStatuses,
 }: Props) {
     return (
         <>
             <Head title={t('My Orders')} />
 
-            <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 md:px-6">
+            <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 md:px-6">
                 <h1 className="text-3xl font-semibold tracking-tight">
                     {t('My orders')}
                 </h1>

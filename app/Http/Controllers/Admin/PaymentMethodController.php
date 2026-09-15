@@ -38,8 +38,7 @@ class PaymentMethodController extends Controller
             'name' => 'name',
             'code' => 'code',
             'status' => 'is_active',
-            'sort' => 'sort_order',
-        ]) ?? $paymentMethods->orderBy('sort_order');
+        ]) ?? $paymentMethods->orderBy('name');
 
         $paymentMethods = $paymentMethods->paginate(10)->withQueryString();
 

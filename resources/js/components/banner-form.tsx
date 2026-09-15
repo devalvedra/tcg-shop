@@ -185,6 +185,12 @@ export function BannerForm({ banner }: Props) {
                                 'Optional. Use a wide landscape image (e.g. 1920x600) for the best result. Leave empty to show a branded gradient instead.',
                             )}
                         </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {t(
+                                'Accepted formats: JPEG, PNG, WebP, GIF. Maximum size: {size}.',
+                                { size: '2 MB' },
+                            )}
+                        </p>
                     </div>
 
                     {currentImage && (
@@ -219,7 +225,7 @@ export function BannerForm({ banner }: Props) {
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
                                     onChange={onImageChange}
                                     className="hidden"
                                 />

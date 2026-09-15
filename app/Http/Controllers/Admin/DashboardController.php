@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-
 class DashboardController extends Controller
 {
     /**

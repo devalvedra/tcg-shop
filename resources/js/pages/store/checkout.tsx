@@ -3,8 +3,8 @@ import {
     ArrowLeft,
     Copy,
     MapPin,
-    MessageCircle,
     Package,
+    Plus,
     Star,
     Ticket,
     X,
@@ -12,8 +12,11 @@ import {
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { categoryIconMap } from '@/components/store/product-card';
+import { RegionFields } from '@/components/store/region-fields';
+import type { RegionOption } from '@/components/store/region-fields';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -28,9 +31,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
+import { store as addressStore } from '@/routes/addresses';
 import { index as cart } from '@/routes/cart';
 import { store as checkoutStore } from '@/routes/checkout';
-import { index as profileIndex } from '@/routes/profile';
 import { apply as applyPromo, remove as removePromo } from '@/routes/promo';
 import type { Address, CartItem, PaymentMethodOption } from '@/types';
 
@@ -49,9 +52,9 @@ type Props = {
     total: number;
     paymentMethods: PaymentMethodOption[];
     promo: PromoInfo | null;
-    whatsappNumber: string | null;
     customerName: string;
     addresses: Address[];
+    provinces: RegionOption[];
 };
 
 export default function Checkout({
@@ -63,9 +66,8 @@ export default function Checkout({
     total,
     paymentMethods,
     promo,
-    whatsappNumber,
-    customerName,
     addresses,
+    provinces,
 }: Props) {
     const defaultAddress =
         addresses.find((address) => address.is_default) ?? addresses[0] ?? null;
@@ -76,8 +78,56 @@ export default function Checkout({
         notes: '',
     });
 
-    const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
+    const [showAddressDialog, setShowAddressDialog] = useState(false);
     const [copiedCode, setCopiedCode] = useState(false);
+
+    const addressForm = useForm<{
+        receiver_name: string;
+        address: string;
+        province: string;
+        city: string;
+        district: string;
+        subdistrict: string;
+        zip: string;
+        is_default: boolean;
+    }>({
+        receiver_name: '',
+        address: '',
+        province: '',
+        city: '',
+        district: '',
+        subdistrict: '',
+        zip: '',
+        is_default: true,
+    });
+
+    const closeAddressDialog = () => {
+        setShowAddressDialog(false);
+        addressForm.reset();
+        addressForm.clearErrors();
+    };
+
+    const submitAddress = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        addressForm.post(addressStore.url(), {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                closeAddressDialog();
+
+                const list = (page.props.addresses ?? []) as Address[];
+                const newest = list.reduce<Address | null>(
+                    (latest, address) =>
+                        !latest || address.id > latest.id ? address : latest,
+                    null,
+                );
+
+                if (newest) {
+                    form.setData('address_id', newest.id);
+                }
+            },
+        });
+    };
 
     const selectedPaymentMethod =
         paymentMethods.find(
@@ -99,49 +149,8 @@ export default function Checkout({
 
     const promoForm = useForm({ code: '' });
 
-    const itemsText = cartItems
-        .map((item) => `${item.product.name} x${item.quantity}`)
-        .join(', ');
-
-    const messageLines = [
-        t("Hello, I'm {name}. My orders are: {items}.", {
-            name: customerName,
-            items: itemsText,
-        }),
-    ];
-
-    if (downPayment > 0) {
-        messageLines.push(
-            t('I have paid DP: {amount}', {
-                amount: formatCurrency(downPayment),
-            }),
-        );
-    }
-
-    const whatsappMessage = messageLines.join('\n');
-    const whatsappDigits = (whatsappNumber ?? '').replace(/\D/g, '');
-    const whatsappLink = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-        whatsappMessage,
-    )}`;
-
     const placeOrder = () => {
         form.post(checkoutStore.url(), { preserveScroll: true });
-    };
-
-    const submit = (event: React.FormEvent) => {
-        event.preventDefault();
-
-        if (whatsappDigits) {
-            setShowWhatsAppDialog(true);
-        } else {
-            placeOrder();
-        }
-    };
-
-    const sendWhatsAppAndPlaceOrder = () => {
-        setShowWhatsAppDialog(false);
-        window.open(whatsappLink, '_blank', 'noopener,noreferrer');
-        placeOrder();
     };
 
     const applyPromoCode = (event: React.FormEvent) => {
@@ -179,16 +188,32 @@ export default function Checkout({
                 </p>
 
                 <form
-                    onSubmit={submit}
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        placeOrder();
+                    }}
                     className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3"
                 >
                     <div className="flex flex-col gap-6 lg:col-span-2">
                         <Card>
                             <CardContent className="flex flex-col gap-4">
-                                <h2 className="flex items-center gap-2 text-lg font-semibold">
-                                    <MapPin className="size-5 text-indigo-600" />
-                                    {t('Shipping address')}
-                                </h2>
+                                <div className="flex items-center justify-between gap-3">
+                                    <h2 className="flex items-center gap-2 text-lg font-semibold">
+                                        <MapPin className="size-5 text-indigo-600" />
+                                        {t('Shipping address')}
+                                    </h2>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            setShowAddressDialog(true)
+                                        }
+                                    >
+                                        <Plus className="size-4" />
+                                        {t('Add new address')}
+                                    </Button>
+                                </div>
 
                                 {addresses.length === 0 ? (
                                     <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed p-4">
@@ -198,13 +223,15 @@ export default function Checkout({
                                             )}
                                         </p>
                                         <Button
-                                            asChild
+                                            type="button"
                                             variant="outline"
                                             size="sm"
+                                            onClick={() =>
+                                                setShowAddressDialog(true)
+                                            }
                                         >
-                                            <Link href={profileIndex()}>
-                                                {t('Add an address')}
-                                            </Link>
+                                            <Plus className="size-4" />
+                                            {t('Add new address')}
                                         </Button>
                                     </div>
                                 ) : (
@@ -303,9 +330,11 @@ export default function Checkout({
                                                     <span className="block text-sm font-medium">
                                                         {method.name}
                                                     </span>
-                                                    {method.description && (
+                                                    {method.account_name && (
                                                         <span className="mt-0.5 block text-xs text-muted-foreground">
-                                                            {method.description}
+                                                            {
+                                                                method.account_name
+                                                            }
                                                         </span>
                                                     )}
                                                 </span>
@@ -313,11 +342,6 @@ export default function Checkout({
                                         );
                                     })}
                                 </div>
-                                {selectedPaymentMethod?.instructions && (
-                                    <div className="rounded-lg border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground">
-                                        {selectedPaymentMethod.instructions}
-                                    </div>
-                                )}
                                 {hasPaymentCode && (
                                     <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/50 px-3 py-2.5">
                                         <div className="min-w-0">
@@ -424,21 +448,18 @@ export default function Checkout({
                                                             )}
                                                         </span>
                                                     </p>
-                                                    {item.product.status ===
-                                                        'pre-order' &&
-                                                        item.down_payment >
-                                                            0 && (
-                                                            <p className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                                                                {t(
-                                                                    'Down payment: {amount}',
-                                                                    {
-                                                                        amount: formatCurrency(
-                                                                            item.down_payment,
-                                                                        ),
-                                                                    },
-                                                                )}
-                                                            </p>
-                                                        )}
+                                                    {item.down_payment > 0 && (
+                                                        <p className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                                            {t(
+                                                                'Down payment: {amount}',
+                                                                {
+                                                                    amount: formatCurrency(
+                                                                        item.down_payment,
+                                                                    ),
+                                                                },
+                                                            )}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <span className="text-sm font-semibold">
                                                     {formatCurrency(
@@ -498,6 +519,21 @@ export default function Checkout({
                                         <span>{formatCurrency(total)}</span>
                                     </div>
                                 </div>
+
+                                {downPayment > 0 && (
+                                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+                                        <p className="font-medium">
+                                            {t(
+                                                'The amount you have to pay is {amount}',
+                                                {
+                                                    amount: formatCurrency(
+                                                        downPayment,
+                                                    ),
+                                                },
+                                            )}
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="flex flex-col gap-2 border-t pt-4">
                                     {promo ? (
@@ -580,44 +616,132 @@ export default function Checkout({
             </div>
 
             <Dialog
-                open={showWhatsAppDialog}
-                onOpenChange={setShowWhatsAppDialog}
+                open={showAddressDialog}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        closeAddressDialog();
+                    } else {
+                        setShowAddressDialog(true);
+                    }
+                }}
             >
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>{t('Confirm your order')}</DialogTitle>
+                        <DialogTitle>{t('Add new address')}</DialogTitle>
                         <DialogDescription>
                             {t(
-                                'Send your order details to the store on WhatsApp?',
+                                'Enter the address where your order will be delivered.',
                             )}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="max-h-64 min-w-0 overflow-y-auto rounded-lg bg-muted p-4">
-                        <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-                            {whatsappMessage}
-                        </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                        {t('Sending to {number}', {
-                            number: whatsappNumber ?? '',
-                        })}
-                    </p>
-                    <DialogFooter>
-                        {/* <Button
-                            variant="outline"
-                            onClick={placeOrder}
-                            disabled={form.processing}
-                        >
-                            {t('Place order without WhatsApp')}
-                        </Button> */}
-                        <Button
-                            onClick={sendWhatsAppAndPlaceOrder}
-                            disabled={form.processing}
-                        >
-                            <MessageCircle className="size-4" />
-                            {t('Send on WhatsApp')}
-                        </Button>
-                    </DialogFooter>
+
+                    <form onSubmit={submitAddress} className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="new_receiver_name">
+                                {t('Receiver name')}
+                            </Label>
+                            <Input
+                                id="new_receiver_name"
+                                value={addressForm.data.receiver_name}
+                                onChange={(event) =>
+                                    addressForm.setData(
+                                        'receiver_name',
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder={t('Who will receive the package')}
+                                required
+                            />
+                            <InputError
+                                message={addressForm.errors.receiver_name}
+                            />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="new_address">
+                                {t('Street address')}
+                            </Label>
+                            <Input
+                                id="new_address"
+                                value={addressForm.data.address}
+                                onChange={(event) =>
+                                    addressForm.setData(
+                                        'address',
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder={t('House number and street')}
+                                required
+                            />
+                            <InputError message={addressForm.errors.address} />
+                        </div>
+
+                        <RegionFields
+                            provinces={provinces}
+                            value={{
+                                province: addressForm.data.province,
+                                city: addressForm.data.city,
+                                district: addressForm.data.district,
+                                subdistrict: addressForm.data.subdistrict,
+                            }}
+                            errors={addressForm.errors}
+                            onChange={(field, value) =>
+                                addressForm.setData(field, value)
+                            }
+                        />
+
+                        <div className="grid gap-2 sm:max-w-xs">
+                            <Label htmlFor="new_zip">{t('Postal code')}</Label>
+                            <Input
+                                id="new_zip"
+                                value={addressForm.data.zip}
+                                onChange={(event) =>
+                                    addressForm.setData(
+                                        'zip',
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder={t('Postal code')}
+                            />
+                            <InputError message={addressForm.errors.zip} />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="new_is_default"
+                                checked={addressForm.data.is_default}
+                                onCheckedChange={(checked) =>
+                                    addressForm.setData(
+                                        'is_default',
+                                        checked === true,
+                                    )
+                                }
+                            />
+                            <Label
+                                htmlFor="new_is_default"
+                                className="font-normal"
+                            >
+                                {t('Set as default address')}
+                            </Label>
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={closeAddressDialog}
+                            >
+                                {t('Cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={addressForm.processing}
+                            >
+                                {addressForm.processing && <Spinner />}
+                                {t('Save address')}
+                            </Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </>

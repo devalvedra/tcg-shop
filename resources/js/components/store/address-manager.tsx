@@ -2,6 +2,8 @@ import { router, useForm } from '@inertiajs/react';
 import { MapPin, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
+import { RegionFields } from '@/components/store/region-fields';
+import type { RegionOption } from '@/components/store/region-fields';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -12,17 +14,21 @@ import type { Address } from '@/types';
 
 type Props = {
     addresses: Address[];
+    provinces: RegionOption[];
 };
 
 type AddressFormData = {
     receiver_name: string;
     address: string;
     city: string;
+    province: string;
+    district: string;
+    subdistrict: string;
     zip: string;
     is_default: boolean;
 };
 
-export function AddressManager({ addresses }: Props) {
+export function AddressManager({ addresses, provinces }: Props) {
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState<Address | null>(null);
 
@@ -30,6 +36,9 @@ export function AddressManager({ addresses }: Props) {
         receiver_name: '',
         address: '',
         city: '',
+        province: '',
+        district: '',
+        subdistrict: '',
         zip: '',
         is_default: false,
     });
@@ -48,6 +57,9 @@ export function AddressManager({ addresses }: Props) {
             receiver_name: address.receiver_name,
             address: address.address,
             city: address.city,
+            province: address.province ?? '',
+            district: address.district ?? '',
+            subdistrict: address.subdistrict ?? '',
             zip: address.zip ?? '',
             is_default: address.is_default,
         });
@@ -67,9 +79,13 @@ export function AddressManager({ addresses }: Props) {
         if (editing) {
             form.put(update.url({ address: editing.id }), {
                 preserveScroll: true,
+                onSuccess: () => cancel(),
             });
         } else {
-            form.post(store.url(), { preserveScroll: true });
+            form.post(store.url(), {
+                preserveScroll: true,
+                onSuccess: () => cancel(),
+            });
         }
     };
 
@@ -153,33 +169,29 @@ export function AddressManager({ addresses }: Props) {
                         <InputError message={form.errors.address} />
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="city">{t('City')}</Label>
-                            <Input
-                                id="city"
-                                value={form.data.city}
-                                onChange={(e) =>
-                                    form.setData('city', e.target.value)
-                                }
-                                placeholder={t('City')}
-                                required
-                            />
-                            <InputError message={form.errors.city} />
-                        </div>
+                    <RegionFields
+                        provinces={provinces}
+                        value={{
+                            province: form.data.province,
+                            city: form.data.city,
+                            district: form.data.district,
+                            subdistrict: form.data.subdistrict,
+                        }}
+                        errors={form.errors}
+                        onChange={(field, value) => form.setData(field, value)}
+                    />
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="zip">{t('Postal code')}</Label>
-                            <Input
-                                id="zip"
-                                value={form.data.zip}
-                                onChange={(e) =>
-                                    form.setData('zip', e.target.value)
-                                }
-                                placeholder={t('Postal code')}
-                            />
-                            <InputError message={form.errors.zip} />
-                        </div>
+                    <div className="grid gap-2 sm:max-w-xs">
+                        <Label htmlFor="zip">{t('Postal code')}</Label>
+                        <Input
+                            id="zip"
+                            value={form.data.zip}
+                            onChange={(e) =>
+                                form.setData('zip', e.target.value)
+                            }
+                            placeholder={t('Postal code')}
+                        />
+                        <InputError message={form.errors.zip} />
                     </div>
 
                     <div className="flex items-center gap-2">

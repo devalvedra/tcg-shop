@@ -28,7 +28,5 @@ export default function PendingVerification() {
 
 PendingVerification.layout = {
     title: t('Registration successful'),
-    description: t(
-        'Your account is waiting for administrator verification',
-    ),
+    description: t('Your account is waiting for administrator verification'),
 };

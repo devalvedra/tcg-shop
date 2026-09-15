@@ -10,7 +10,7 @@ declare module 'react' {
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
-            name: string;
+            name: string | null;
             logo: string | null;
             locale: string;
             translations: Record<string, string>;

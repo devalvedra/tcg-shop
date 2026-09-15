@@ -353,7 +353,9 @@ export default function Dashboard({
                                     <div
                                         key={day.day}
                                         title={
-                                            mounted ? undefined : daySummary(day)
+                                            mounted
+                                                ? undefined
+                                                : daySummary(day)
                                         }
                                         className={`flex-1 cursor-pointer rounded-t transition-colors ${
                                             day.revenue > 0

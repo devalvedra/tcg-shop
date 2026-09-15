@@ -15,13 +15,16 @@ use Illuminate\Support\Carbon;
  * @property string $receiver_name
  * @property string $address
  * @property string $city
+ * @property string|null $province
+ * @property string|null $district
+ * @property string|null $subdistrict
  * @property string|null $zip
  * @property bool $is_default
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
  */
-#[Fillable(['user_id', 'receiver_name', 'address', 'city', 'zip', 'is_default'])]
+#[Fillable(['user_id', 'receiver_name', 'address', 'city', 'province', 'district', 'subdistrict', 'zip', 'is_default'])]
 class Address extends Model
 {
     /** @use HasFactory<AddressFactory> */
@@ -42,7 +45,14 @@ class Address extends Model
      */
     public function getLabelAttribute(): string
     {
-        return collect([$this->address, $this->city, $this->zip])
+        return collect([
+            $this->address,
+            $this->subdistrict,
+            $this->district,
+            $this->city,
+            $this->province,
+            $this->zip,
+        ])
             ->filter()
             ->join(', ');
     }

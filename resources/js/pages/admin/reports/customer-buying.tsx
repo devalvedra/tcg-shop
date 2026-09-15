@@ -47,18 +47,14 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
                             {t('Customer buying')}
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {t(
-                                'Products bought and money spent per customer',
-                            )}
+                            {t('Products bought and money spent per customer')}
                         </p>
                     </div>
                     <Button asChild variant="outline">
                         <a
-                            href={
-                                reportsRoutes.customerBuying.export.url({
-                                    query,
-                                })
-                            }
+                            href={reportsRoutes.customerBuying.export.url({
+                                query,
+                            })}
                         >
                             <Download className="size-4" />
                             {t('Export Excel')}
@@ -79,9 +75,7 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
                                     </span>
                                     <Input
                                         name="customer"
-                                        defaultValue={
-                                            filters.customer ?? ''
-                                        }
+                                        defaultValue={filters.customer ?? ''}
                                         placeholder={t('Search by customer')}
                                         className="w-52"
                                     />

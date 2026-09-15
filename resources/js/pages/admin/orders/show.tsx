@@ -14,7 +14,6 @@ type Props = {
     statuses: Record<string, string>;
     paymentMethods: Record<string, string>;
     paymentStatuses: Record<string, string>;
-    downPaymentStatuses: Record<string, string>;
 };
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -28,8 +27,8 @@ const statusStyles: Record<OrderStatus, string> = {
 
 const paymentStyles: Record<PaymentStatus, string> = {
     unpaid: 'bg-rose-50 text-rose-700 ring-rose-600/20',
+    dp: 'bg-amber-50 text-amber-700 ring-amber-600/20',
     paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    refunded: 'bg-muted text-muted-foreground ring-border',
 };
 
 const nativeSelectClasses =
@@ -40,7 +39,6 @@ export default function ShowOrder({
     statuses,
     paymentMethods,
     paymentStatuses,
-    downPaymentStatuses,
 }: Props) {
     return (
         <>
@@ -287,32 +285,6 @@ export default function ShowOrder({
                                             ))}
                                         </select>
                                     </div>
-                                    {Number(order.down_payment) > 0 && (
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="down_payment_status">
-                                                {t('Down payment')}
-                                            </Label>
-                                            <select
-                                                id="down_payment_status"
-                                                name="down_payment_status"
-                                                defaultValue={
-                                                    order.down_payment_status
-                                                }
-                                                className={nativeSelectClasses}
-                                            >
-                                                {Object.entries(
-                                                    downPaymentStatuses,
-                                                ).map(([value, label]) => (
-                                                    <option
-                                                        key={value}
-                                                        value={value}
-                                                    >
-                                                        {t(label)}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
                                     <Button type="submit" className="w-full">
                                         {t('Save changes')}
                                     </Button>
@@ -425,6 +397,26 @@ export default function ShowOrder({
                                         ] ?? order.payment_status}
                                     </span>
                                 </div>
+
+                                {order.payment_status === 'dp' &&
+                                    Number(order.down_payment) > 0 && (
+                                        <div className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                            {t(
+                                                'You have paid DP: {paid}, please pay the remaining payment of: {remaining}',
+                                                {
+                                                    paid: formatCurrency(
+                                                        order.down_payment,
+                                                    ),
+                                                    remaining: formatCurrency(
+                                                        Number(order.total) -
+                                                            Number(
+                                                                order.down_payment,
+                                                            ),
+                                                    ),
+                                                },
+                                            )}
+                                        </div>
+                                    )}
                             </CardContent>
                         </Card>
 

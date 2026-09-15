@@ -52,7 +52,6 @@ class CartController extends Controller
     public function store(AddToCartRequest $request, Product $product, Cart $cart): RedirectResponse
     {
         $quantity = $request->integer('quantity');
-        $downPayment = $this->downPaymentInput($request);
 
         if ($product->status === Product::STATUS_UNAVAILABLE) {
             Inertia::flash('toast', [
@@ -87,18 +86,7 @@ class CartController extends Controller
             }
         }
 
-        $subtotal = round((float) ($product->sell_price ?? $product->price) * ($cart->quantity($product->id) + $quantity), 2);
-
-        if ($downPayment !== null && $product->status === Product::STATUS_PRE_ORDER && $downPayment >= $subtotal) {
-            Inertia::flash('toast', [
-                'type' => 'error',
-                'message' => __('shop.cart_down_payment_too_high', ['amount' => number_format($subtotal, 2)]),
-            ]);
-
-            return back();
-        }
-
-        $cart->add($product, $quantity, $downPayment);
+        $cart->add($product, $quantity);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -109,7 +97,7 @@ class CartController extends Controller
     }
 
     /**
-     * Update the quantity and/or down payment of a cart item.
+     * Update the quantity of a cart item.
      */
     public function update(Request $request, Product $product, Cart $cart): RedirectResponse
     {
@@ -130,34 +118,7 @@ class CartController extends Controller
             return back();
         }
 
-        $downPayment = $this->downPaymentInput($request);
-
-        if ($downPayment !== null) {
-            if ($downPayment < 0) {
-                Inertia::flash('toast', [
-                    'type' => 'error',
-                    'message' => __('shop.cart_down_payment_negative'),
-                ]);
-
-                return back();
-            }
-
-            if ($product->status === Product::STATUS_PRE_ORDER) {
-                $finalQuantity = $quantity ?? $cart->quantity($product->id);
-                $subtotal = round((float) ($product->sell_price ?? $product->price) * $finalQuantity, 2);
-
-                if ($downPayment >= $subtotal) {
-                    Inertia::flash('toast', [
-                        'type' => 'error',
-                        'message' => __('shop.cart_down_payment_too_high', ['amount' => number_format($subtotal, 2)]),
-                    ]);
-
-                    return back();
-                }
-            }
-        }
-
-        $cart->update($product, $quantity, $downPayment);
+        $cart->update($product, $quantity);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -180,20 +141,5 @@ class CartController extends Controller
         ]);
 
         return back();
-    }
-
-    /**
-     * Read the optional down payment from the request.
-     *
-     * Returns null when the field is absent or blank, which means "do not
-     * change the stored down payment".
-     */
-    private function downPaymentInput(Request $request): ?float
-    {
-        if (! $request->exists('down_payment') || $request->input('down_payment') === '') {
-            return null;
-        }
-
-        return $request->float('down_payment');
     }
 }

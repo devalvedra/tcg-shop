@@ -260,9 +260,7 @@ export default function CategoriesIndex({ categories, filters }: Props) {
                                 </h2>
                                 <p className="max-w-sm text-sm text-muted-foreground">
                                     {filters.search
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Add a category to start organizing your catalog.',
                                           )}

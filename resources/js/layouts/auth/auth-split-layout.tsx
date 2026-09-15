@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { resolveBranding } from '@/lib/branding';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -9,6 +10,7 @@ export default function AuthSplitLayout({
     description,
 }: AuthLayoutProps) {
     const { name, logo } = usePage().props;
+    const branding = resolveBranding(name, logo);
 
     return (
         <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -18,16 +20,20 @@ export default function AuthSplitLayout({
                     href={home()}
                     className="relative z-20 flex items-center text-lg font-medium"
                 >
-                    {logo ? (
+                    {branding.hasLogo && logo ? (
                         <img
                             src={logo}
-                            alt={name}
-                            className="mr-2 h-8 w-auto"
+                            alt={branding.text}
+                            className={
+                                branding.hasName
+                                    ? 'mr-2 h-8 w-auto'
+                                    : 'mr-2 h-12 w-auto'
+                            }
                         />
                     ) : (
                         <AppLogoIcon className="mr-2 size-8 fill-current text-white" />
                     )}
-                    {name}
+                    {branding.showText && branding.text}
                 </Link>
             </div>
             <div className="w-full lg:p-8">
@@ -36,10 +42,10 @@ export default function AuthSplitLayout({
                         href={home()}
                         className="relative z-20 flex items-center justify-center lg:hidden"
                     >
-                        {logo ? (
+                        {branding.hasLogo && logo ? (
                             <img
                                 src={logo}
-                                alt={name}
+                                alt={branding.text}
                                 className="h-10 w-auto sm:h-12"
                             />
                         ) : (

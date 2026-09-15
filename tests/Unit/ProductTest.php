@@ -51,3 +51,26 @@ test('ready products never have an open pre-order window', function () {
 
     expect($product->isPreOrderWindowOpen())->toBeFalse();
 });
+
+test('the youtube video id is extracted from common link formats', function (string $link, ?string $expected) {
+    $product = new Product(['youtube_link' => $link]);
+
+    expect($product->youtubeVideoId())->toBe($expected);
+})->with([
+    ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://youtu.be/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLxyz&index=2', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/watch?app=desktop&v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/shorts/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/embed/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/live/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://example.com/watch?v=dQw4w9WgXcQ', null],
+    ['not a link', null],
+]);
+
+test('the youtube embed url is built with the rel parameter', function () {
+    $product = new Product(['youtube_link' => 'https://youtu.be/dQw4w9WgXcQ']);
+
+    expect($product->youtubeEmbedUrl())->toBe('https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0');
+});

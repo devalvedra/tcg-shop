@@ -28,7 +28,10 @@ trait AddressValidationRules
         return [
             'receiver_name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
+            'province' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
+            'district' => ['nullable', 'string', 'max:255'],
+            'subdistrict' => ['nullable', 'string', 'max:255'],
             'zip' => ['nullable', 'string', 'max:20'],
             'is_default' => ['sometimes', 'boolean'],
         ];

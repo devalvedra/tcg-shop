@@ -141,3 +141,33 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer utilities {
+    .image-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+
+    .image-scrollbar::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .image-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .image-scrollbar::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 9999px;
+    }
+
+    .image-scrollbar:hover,
+    .image-scrollbar:active {
+        scrollbar-color: var(--color-border) transparent;
+    }
+
+    .image-scrollbar:hover::-webkit-scrollbar-thumb,
+    .image-scrollbar:active::-webkit-scrollbar-thumb {
+        background-color: var(--color-border);
+    }
+}

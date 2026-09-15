@@ -100,6 +100,37 @@ test('products can be sorted by name', function () {
             ->where('products.data.0.name', 'Charlie Pack'));
 });
 
+test('product images can be reordered', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $product = Product::factory()->withImages(3)->create();
+
+    $images = $product->images()->orderBy('sort_order')->get();
+    $expected = $images->pluck('id')->reverse()->values()->all();
+
+    $this->actingAs($admin)
+        ->put(route('admin.products.update', $product), [
+            'name' => $product->name,
+            'category' => $product->category,
+            'price' => $product->price,
+            'stock' => $product->stock,
+            'status' => Product::STATUS_READY,
+            'image_order' => $images
+                ->reverse()
+                ->map(fn ($image) => "id:{$image->id}")
+                ->values()
+                ->all(),
+        ])
+        ->assertRedirect(route('admin.products.show', $product));
+
+    $reordered = $product->fresh()
+        ->images()
+        ->orderBy('sort_order')
+        ->pluck('id')
+        ->all();
+
+    expect($reordered)->toBe($expected);
+});
+
 test('a product can be created with images', function () {
     Storage::fake('public');
 
@@ -140,6 +171,91 @@ test('a product can be created with images', function () {
 
     $this->assertCount(2, $product->images);
     Storage::disk('public')->assertExists($product->images->first()->image);
+});
+
+test('a product can be created with a down payment and youtube link', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.products.store'), [
+            'name' => 'Charizard EX',
+            'description' => 'Classic chase card.',
+            'youtube_link' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'category' => 'singles',
+            'price' => '92.00',
+            'down_payment' => '25.00',
+            'stock' => 12,
+            'status' => Product::STATUS_READY,
+        ])
+        ->assertRedirect();
+
+    $product = Product::where('name', 'Charizard EX')->firstOrFail();
+
+    expect((float) $product->down_payment)->toBe(25.0);
+    expect($product->youtube_link)->toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    expect($product->youtubeEmbedUrl())->toBe('https://www.youtube.com/embed/dQw4w9WgXcQ');
+});
+
+test('an empty down payment defaults to zero', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.products.store'), [
+            'name' => 'Snorlax',
+            'category' => 'singles',
+            'price' => '10.00',
+            'down_payment' => '',
+            'stock' => 1,
+            'status' => Product::STATUS_READY,
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('products', [
+        'name' => 'Snorlax',
+        'down_payment' => 0,
+    ]);
+});
+
+test('product images larger than two megabytes are rejected', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.products.store'), [
+            'name' => 'Large Image Card',
+            'category' => 'singles',
+            'price' => '10.00',
+            'stock' => 1,
+            'status' => Product::STATUS_READY,
+            'images' => [
+                UploadedFile::fake()->image('huge.jpg')->size(2049),
+            ],
+        ])
+        ->assertSessionHasErrors('images.0');
+
+    $this->assertDatabaseMissing('products', ['name' => 'Large Image Card']);
+});
+
+test('product images up to two megabytes are accepted', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.products.store'), [
+            'name' => 'Valid Image Card',
+            'category' => 'singles',
+            'price' => '10.00',
+            'stock' => 1,
+            'status' => Product::STATUS_READY,
+            'images' => [
+                UploadedFile::fake()->image('ok.jpg')->size(2000),
+            ],
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('products', ['name' => 'Valid Image Card']);
 });
 
 test('product validation requires name, category, price, stock, and status', function () {

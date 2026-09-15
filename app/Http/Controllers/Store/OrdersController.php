@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\ShopSetting;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,7 +34,6 @@ class OrdersController extends Controller
             'statuses' => Order::STATUS_LABELS,
             'paymentMethods' => PaymentMethod::options(),
             'paymentStatuses' => Order::PAYMENT_STATUS_LABELS,
-            'downPaymentStatuses' => Order::DOWN_PAYMENT_STATUS_LABELS,
         ]);
     }
 
@@ -49,8 +51,59 @@ class OrdersController extends Controller
             'statuses' => Order::STATUS_LABELS,
             'paymentMethods' => PaymentMethod::options(),
             'paymentStatuses' => Order::PAYMENT_STATUS_LABELS,
-            'downPaymentStatuses' => Order::DOWN_PAYMENT_STATUS_LABELS,
+            'paymentMethodDetails' => $this->paymentMethodDetails($order),
+            'whatsappNumber' => ShopSetting::get('whatsapp_number') ?: null,
+            'cancelOrder' => $this->cancelOrderConfig($order),
         ]);
+    }
+
+    /**
+     * Update the notes attached to a customer's order.
+     */
+    public function updateNotes(Request $request, Order $order): RedirectResponse
+    {
+        abort_if($order->customer_id !== auth()->id(), 403);
+
+        $validated = $request->validate([
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $order->update(['notes' => $validated['notes'] ?? null]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('shop.order_notes_updated'),
+        ]);
+
+        return back();
+    }
+
+    /**
+     * Render a printable invoice for the given order.
+     */
+    public function invoice(Order $order): HttpResponse
+    {
+        abort_if($order->customer_id !== auth()->id() && ! auth()->user()?->isAdmin(), 403);
+
+        $order->load(['items', 'customer', 'promoCode']);
+
+        $settings = ShopSetting::allSettings();
+
+        $locale = $settings['locale'] ?? config('app.locale', 'en');
+        app()->setLocale(in_array($locale, ['en', 'id'], true) ? $locale : 'en');
+
+        $pdf = Pdf::loadView('invoice', [
+            'order' => $order,
+            'paymentMethod' => $this->paymentMethodDetails($order),
+            'store' => [
+                'name' => $settings['store_name'] ?? config('app.name'),
+                'email' => $settings['store_email'] ?? null,
+                'phone' => $settings['store_phone'] ?? null,
+                'address' => $settings['store_address'] ?? null,
+            ],
+        ]);
+
+        return $pdf->download("invoice-{$order->order_number}.pdf");
     }
 
     /**
@@ -60,10 +113,12 @@ class OrdersController extends Controller
     {
         abort_if($order->customer_id !== auth()->id(), 403);
 
-        if ($order->status !== Order::STATUS_PENDING) {
+        $config = $this->cancelOrderConfig($order);
+
+        if (! $config['canCancel']) {
             Inertia::flash('toast', [
                 'type' => 'error',
-                'message' => __('shop.order_only_pending_cancel'),
+                'message' => __('shop.order_cannot_cancel'),
             ]);
 
             return back();
@@ -82,9 +137,6 @@ class OrdersController extends Controller
 
             $order->update([
                 'status' => Order::STATUS_CANCELLED,
-                'payment_status' => $order->payment_status === Order::PAYMENT_STATUS_PAID
-                    ? Order::PAYMENT_STATUS_REFUNDED
-                    : $order->payment_status,
             ]);
         });
 
@@ -94,5 +146,53 @@ class OrdersController extends Controller
         ]);
 
         return back();
+    }
+
+    /**
+     * The payment method record used to pay for the given order, if any.
+     *
+     * @return array{name: string, account_name: string|null, code: string}|null
+     */
+    private function paymentMethodDetails(Order $order): ?array
+    {
+        if (! $order->payment_method) {
+            return null;
+        }
+
+        $method = PaymentMethod::where('code', $order->payment_method)->first();
+
+        if (! $method) {
+            return null;
+        }
+
+        return [
+            'name' => $method->name,
+            'account_name' => $method->account_name,
+            'code' => $method->code,
+        ];
+    }
+
+    /**
+     * The cancel-order configuration for the given order.
+     *
+     * @return array{enabled: bool, hours: int, canCancel: bool}
+     */
+    private function cancelOrderConfig(Order $order): array
+    {
+        $enabled = filter_var(ShopSetting::get('cancel_order_enabled', '1'), FILTER_VALIDATE_BOOLEAN);
+        $hours = (int) (ShopSetting::get('cancel_order_hours', '1') ?? 1);
+
+        $withinWindow = $order->created_at !== null
+            && $order->created_at->gt(now()->subHours($hours));
+
+        $canCancel = $enabled
+            && $order->status === Order::STATUS_PENDING
+            && $withinWindow;
+
+        return [
+            'enabled' => $enabled,
+            'hours' => $hours,
+            'canCancel' => $canCancel,
+        ];
     }
 }

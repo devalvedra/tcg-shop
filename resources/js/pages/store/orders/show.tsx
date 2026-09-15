@@ -1,23 +1,46 @@
-import { Form, Head, Link } from '@inertiajs/react';
-import { ArrowLeft, MapPin, Package, XCircle } from 'lucide-react';
+import { Form, Head, Link, useForm } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    Check,
+    Copy,
+    Download,
+    MapPin,
+    MessageCircle,
+    Package,
+    XCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
-import { cancel, index as ordersIndex } from '@/routes/orders';
-import type {
-    DownPaymentStatus,
-    Order,
-    OrderStatus,
-    PaymentStatus,
-} from '@/types';
+import {
+    cancel,
+    index as ordersIndex,
+    invoice as invoiceRoute,
+    notes as notesRoute,
+} from '@/routes/orders';
+import type { Order, OrderStatus, PaymentStatus } from '@/types';
+
+type PaymentMethodDetails = {
+    name: string;
+    account_name: string | null;
+    code: string;
+};
 
 type Props = {
     order: Order;
     statuses: Record<string, string>;
     paymentMethods: Record<string, string>;
     paymentStatuses: Record<string, string>;
-    downPaymentStatuses: Record<string, string>;
+    paymentMethodDetails: PaymentMethodDetails | null;
+    whatsappNumber: string | null;
+    cancelOrder: {
+        enabled: boolean;
+        hours: number;
+        canCancel: boolean;
+    };
 };
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -31,12 +54,7 @@ const statusStyles: Record<OrderStatus, string> = {
 
 const paymentStyles: Record<PaymentStatus, string> = {
     unpaid: 'bg-rose-50 text-rose-700 ring-rose-600/20',
-    paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    refunded: 'bg-muted text-muted-foreground ring-border',
-};
-
-const downPaymentStyles: Record<DownPaymentStatus, string> = {
-    unpaid: 'bg-rose-50 text-rose-700 ring-rose-600/20',
+    dp: 'bg-amber-50 text-amber-700 ring-amber-600/20',
     paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
 };
 
@@ -45,21 +63,58 @@ export default function ShowOrder({
     statuses,
     paymentMethods,
     paymentStatuses,
-    downPaymentStatuses,
+    paymentMethodDetails,
+    whatsappNumber,
+    cancelOrder,
 }: Props) {
+    const [copiedText, copy] = useClipboard();
+    const notesForm = useForm({ notes: order.notes ?? '' });
+
     const shippingLabel = [
         order.shipping_address,
+        order.shipping_subdistrict,
+        order.shipping_district,
         order.shipping_city,
+        order.shipping_province,
         order.shipping_zip,
     ]
         .filter(Boolean)
         .join(', ');
 
+    const itemsText = order.items
+        .map((item) => `${item.product_name} x${item.quantity}`)
+        .join(', ');
+
+    const messageLines = [
+        t('Order number: {number}', { number: order.order_number }),
+        t("Hello, I'm sending my order: {items}.", { items: itemsText }),
+    ];
+
+    if (Number(order.down_payment) > 0) {
+        messageLines.push(
+            t('I have paid DP: {amount}', {
+                amount: formatCurrency(order.down_payment),
+            }),
+        );
+    }
+
+    const whatsappDigits = (whatsappNumber ?? '').replace(/\D/g, '');
+    const whatsappLink = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
+        messageLines.join('\n'),
+    )}`;
+
+    const saveNotes = (event: React.FormEvent) => {
+        event.preventDefault();
+        notesForm.put(notesRoute.url({ order: order.id }), {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <>
             <Head title={t('Order {number}', { number: order.order_number })} />
 
-            <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 md:px-6">
+            <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 md:px-6">
                 <Button
                     asChild
                     variant="ghost"
@@ -91,13 +146,39 @@ export default function ShowOrder({
                             })}
                         </p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <p className="text-2xl font-semibold tracking-tight">
-                            {formatCurrency(order.total)}
-                        </p>
-                        {order.status === 'pending' && (
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                        <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                        >
+                            <a href={invoiceRoute.url({ order: order.id })}>
+                                <Download className="size-4" />
+                                {t('Download invoice')}
+                            </a>
+                        </Button>
+                        {whatsappDigits && (
+                            <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto"
+                            >
+                                <a
+                                    href={whatsappLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <MessageCircle className="size-4" />
+                                    {t('Send on WhatsApp')}
+                                </a>
+                            </Button>
+                        )}
+                        {cancelOrder.canCancel && (
                             <Form
                                 {...cancel.form({ order: order.id })}
+                                className="w-full sm:w-auto"
                                 onSubmit={(e) => {
                                     if (
                                         !window.confirm(
@@ -114,7 +195,7 @@ export default function ShowOrder({
                                     type="submit"
                                     variant="outline"
                                     size="sm"
-                                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                    className="w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700 sm:w-auto"
                                 >
                                     <XCircle className="size-4" />
                                     {t('Cancel order')}
@@ -202,21 +283,49 @@ export default function ShowOrder({
                                         </span>
                                     </div>
                                 )}
-                                {Number(order.down_payment) > 0 && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">
-                                            {t('Down payment')}
-                                        </span>
-                                        <span className="font-medium text-amber-600 dark:text-amber-400">
-                                            {formatCurrency(order.down_payment)}
-                                        </span>
-                                    </div>
-                                )}
                                 <div className="flex justify-between border-t pt-2 font-semibold">
                                     <span>{t('Total')}</span>
                                     <span>{formatCurrency(order.total)}</span>
                                 </div>
                             </div>
+
+                            {Number(order.down_payment) > 0 &&
+                                order.payment_status === 'unpaid' && (
+                                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+                                        <p className="font-medium">
+                                            {t(
+                                                'The amount you have to pay is {amount}',
+                                                {
+                                                    amount: formatCurrency(
+                                                        order.down_payment,
+                                                    ),
+                                                },
+                                            )}
+                                        </p>
+                                    </div>
+                                )}
+
+                            {Number(order.down_payment) > 0 &&
+                                order.payment_status === 'dp' && (
+                                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                        <p className="font-medium">
+                                            {t(
+                                                'You have paid DP: {paid}, please pay the remaining payment of: {remaining}',
+                                                {
+                                                    paid: formatCurrency(
+                                                        order.down_payment,
+                                                    ),
+                                                    remaining: formatCurrency(
+                                                        Number(order.total) -
+                                                            Number(
+                                                                order.down_payment,
+                                                            ),
+                                                    ),
+                                                },
+                                            )}
+                                        </p>
+                                    </div>
+                                )}
                         </CardContent>
                     </Card>
 
@@ -231,15 +340,57 @@ export default function ShowOrder({
                                         {t('Method')}
                                     </span>
                                     <span>
-                                        {order.payment_method
-                                            ? t(
-                                                  paymentMethods[
-                                                      order.payment_method
-                                                  ] ?? order.payment_method,
-                                              )
-                                            : '—'}
+                                        {paymentMethodDetails?.name ??
+                                            (order.payment_method
+                                                ? t(
+                                                      paymentMethods[
+                                                          order.payment_method
+                                                      ] ?? order.payment_method,
+                                                  )
+                                                : '—')}
                                     </span>
                                 </div>
+                                {paymentMethodDetails?.account_name && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">
+                                            {t('Account name')}
+                                        </span>
+                                        <span>
+                                            {paymentMethodDetails.account_name}
+                                        </span>
+                                    </div>
+                                )}
+                                {paymentMethodDetails && (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-muted-foreground">
+                                            {t('Account number')}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <span className="font-mono">
+                                                {paymentMethodDetails.code}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-6"
+                                                onClick={() =>
+                                                    copy(
+                                                        paymentMethodDetails.code,
+                                                    )
+                                                }
+                                                title={t('Copy account number')}
+                                            >
+                                                {copiedText ===
+                                                paymentMethodDetails.code ? (
+                                                    <Check className="size-3.5 text-emerald-600" />
+                                                ) : (
+                                                    <Copy className="size-3.5" />
+                                                )}
+                                            </Button>
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">
                                         {t('Status')}
@@ -254,22 +405,6 @@ export default function ShowOrder({
                                         )}
                                     </span>
                                 </div>
-                                {Number(order.down_payment) > 0 && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">
-                                            {t('Down payment')}
-                                        </span>
-                                        <span
-                                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${downPaymentStyles[order.down_payment_status]}`}
-                                        >
-                                            {t(
-                                                downPaymentStatuses[
-                                                    order.down_payment_status
-                                                ] ?? order.down_payment_status,
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
                                 {order.promo_code && (
                                     <div className="flex items-center justify-between">
                                         <span className="text-muted-foreground">
@@ -306,18 +441,39 @@ export default function ShowOrder({
                             </CardContent>
                         </Card>
 
-                        {order.notes && (
-                            <Card>
-                                <CardContent className="flex flex-col gap-2 p-4 text-sm">
-                                    <h2 className="text-base font-semibold">
-                                        {t('Notes')}
-                                    </h2>
-                                    <p className="text-muted-foreground">
-                                        {order.notes}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <Card>
+                            <CardContent className="flex flex-col gap-2 p-4 text-sm">
+                                <h2 className="text-base font-semibold">
+                                    {t('Notes')}
+                                </h2>
+                                <form
+                                    onSubmit={saveNotes}
+                                    className="flex flex-col gap-2"
+                                >
+                                    <Textarea
+                                        value={notesForm.data.notes}
+                                        onChange={(event) =>
+                                            notesForm.setData(
+                                                'notes',
+                                                event.target.value,
+                                            )
+                                        }
+                                        rows={3}
+                                        placeholder={t(
+                                            'Special instructions for your order...',
+                                        )}
+                                    />
+                                    <Button
+                                        type="submit"
+                                        size="sm"
+                                        className="w-fit"
+                                        disabled={notesForm.processing}
+                                    >
+                                        {t('Save notes')}
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>

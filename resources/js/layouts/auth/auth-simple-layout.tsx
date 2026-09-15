@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ShieldCheck, Sparkles, Wallet } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { resolveBranding } from '@/lib/branding';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -10,6 +11,7 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     const { name, logo } = usePage().props;
+    const branding = resolveBranding(name, logo);
 
     return (
         <div className="grid min-h-svh bg-background lg:grid-cols-2">
@@ -29,20 +31,24 @@ export default function AuthSimpleLayout({
                     href={home()}
                     className="relative z-10 flex items-center gap-3"
                 >
-                    {logo ? (
+                    {branding.hasLogo && logo ? (
                         <img
                             src={logo}
-                            alt={name}
-                            className="h-11 w-auto"
+                            alt={branding.text}
+                            className={
+                                branding.hasName ? 'h-11 w-auto' : 'h-14 w-auto'
+                            }
                         />
                     ) : (
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 shadow-lg ring-1 ring-white/25 backdrop-blur">
                             <AppLogoIcon className="size-7 fill-current text-white" />
                         </div>
                     )}
-                    <span className="text-lg font-semibold tracking-tight">
-                        {name}
-                    </span>
+                    {branding.showText && (
+                        <span className="text-lg font-semibold tracking-tight">
+                            {branding.text}
+                        </span>
+                    )}
                 </Link>
 
                 <div className="relative z-10 max-w-md">
@@ -82,7 +88,7 @@ export default function AuthSimpleLayout({
                 </div>
 
                 <p className="relative z-10 text-sm text-white/50">
-                    © {new Date().getFullYear()} {name} Admin
+                    Ac {new Date().getFullYear()} {branding.text} Admin
                 </p>
             </div>
 
@@ -94,10 +100,10 @@ export default function AuthSimpleLayout({
                                 href={home()}
                                 className="flex flex-col items-center gap-2 font-medium lg:hidden"
                             >
-                                {logo ? (
+                                {branding.hasLogo && logo ? (
                                     <img
                                         src={logo}
-                                        alt={name}
+                                        alt={branding.text}
                                         className="mb-1 h-11 w-auto"
                                     />
                                 ) : (

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -11,7 +12,6 @@ use App\Http\Controllers\Admin\PromoCodeController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Store\AddressController;
 use App\Http\Controllers\Store\CartController;
 use App\Http\Controllers\Store\CatalogController;
@@ -20,6 +20,7 @@ use App\Http\Controllers\Store\HomeController;
 use App\Http\Controllers\Store\OrdersController;
 use App\Http\Controllers\Store\ProfileController;
 use App\Http\Controllers\Store\PromoController;
+use App\Http\Controllers\Store\RegionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -55,7 +56,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders', [OrdersController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
     Route::delete('orders/{order}', [OrdersController::class, 'cancel'])->name('orders.cancel');
+    Route::put('orders/{order}/notes', [OrdersController::class, 'updateNotes'])->name('orders.notes');
+    Route::get('orders/{order}/invoice', [OrdersController::class, 'invoice'])->name('orders.invoice');
     Route::get('orders/{order}/confirmation', [CheckoutController::class, 'confirmation'])->name('orders.confirmation');
+
+    Route::get('regions/cities/{province}', [RegionController::class, 'cities'])->name('regions.cities');
+    Route::get('regions/districts/{city}', [RegionController::class, 'districts'])->name('regions.districts');
+    Route::get('regions/subdistricts/{district}', [RegionController::class, 'subdistricts'])->name('regions.subdistricts');
 
     Route::get('profile', [ProfileController::class, 'index'])->name('profile.index');
 
@@ -66,7 +73,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
     Route::patch('addresses/{address}/default', [AddressController::class, 'default'])->name('addresses.set-default');
     Route::delete('addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
-
 
     Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');

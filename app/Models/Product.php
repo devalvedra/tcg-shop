@@ -16,17 +16,19 @@ use Illuminate\Support\Str;
  * @property string $name
  * @property string $slug
  * @property string|null $description
+ * @property string|null $youtube_link
  * @property string $category
  * @property-read string $category_name
  * @property string $price
  * @property string|null $sell_price
+ * @property string $down_payment
  * @property int $stock
  * @property string $status
  * @property Carbon|null $open_po_date
  * @property Carbon|null $close_po_date
  * @property-read Collection<int, ProductImage> $images
  */
-#[Fillable(['name', 'description', 'category', 'price', 'sell_price', 'stock', 'status', 'open_po_date', 'close_po_date'])]
+#[Fillable(['name', 'description', 'youtube_link', 'category', 'price', 'sell_price', 'down_payment', 'stock', 'status', 'open_po_date', 'close_po_date'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -111,6 +113,82 @@ class Product extends Model
     }
 
     /**
+     * Determine whether this product requires a down payment.
+     */
+    public function hasDownPayment(): bool
+    {
+        return (float) $this->down_payment > 0;
+    }
+
+    /**
+     * Convert the stored YouTube link into an embeddable URL.
+     */
+    public function youtubeEmbedUrl(): ?string
+    {
+        $id = $this->youtubeVideoId();
+
+        return $id !== null ? "https://www.youtube.com/embed/{$id}?rel=0" : null;
+    }
+
+    /**
+     * Extract the 11-character YouTube video id from the stored link.
+     *
+     * Supports youtu.be short links, watch urls (including extra query
+     * parameters before "v"), embed/shorts/live/v paths, and bare ids.
+     */
+    public function youtubeVideoId(): ?string
+    {
+        $link = trim((string) $this->youtube_link);
+
+        if ($link === '') {
+            return null;
+        }
+
+        if (preg_match('/^[A-Za-z0-9_-]{11}$/', $link) === 1) {
+            return $link;
+        }
+
+        $parts = parse_url($link);
+
+        if ($parts === false || ! isset($parts['host'])) {
+            $parts = parse_url('https://'.$link);
+        }
+
+        if ($parts === false || ! isset($parts['host'])) {
+            return null;
+        }
+
+        $host = strtolower($parts['host']);
+        $path = trim((string) ($parts['path'] ?? ''), '/');
+        $id = null;
+
+        if ($host === 'youtu.be' || str_ends_with($host, '.youtu.be')) {
+            $id = explode('/', $path)[0];
+        } elseif (str_contains($host, 'youtube.com') || str_contains($host, 'youtube-nocookie.com')) {
+            parse_str((string) ($parts['query'] ?? ''), $query);
+            $id = $query['v'] ?? null;
+
+            if (! is_string($id) || $id === '') {
+                foreach (['embed', 'shorts', 'live', 'v'] as $prefix) {
+                    if (str_starts_with($path, $prefix.'/')) {
+                        $id = substr($path, strlen($prefix) + 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (! is_string($id) || $id === '') {
+            return null;
+        }
+
+        $id = explode('/', $id)[0];
+        $id = trim($id);
+
+        return preg_match('/^[A-Za-z0-9_-]{11}$/', $id) === 1 ? $id : null;
+    }
+
+    /**
      * Determine whether the product is available for pre-order.
      */
     public function isPreOrder(): bool
@@ -143,6 +221,7 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'sell_price' => 'decimal:2',
+            'down_payment' => 'decimal:2',
             'stock' => 'integer',
             'open_po_date' => 'date:Y-m-d',
             'close_po_date' => 'date:Y-m-d',

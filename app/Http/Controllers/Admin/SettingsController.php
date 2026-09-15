@@ -23,13 +23,16 @@ class SettingsController extends Controller
 
         return Inertia::render('admin/settings/index', [
             'settings' => [
-                'store_name' => $settings['store_name'] ?? 'TCG Shop',
+                'store_name' => $settings['store_name'] ?? '',
                 'store_email' => $settings['store_email'] ?? null,
                 'store_phone' => $settings['store_phone'] ?? null,
                 'store_address' => $settings['store_address'] ?? null,
                 'store_logo' => $storeLogo,
                 'store_logo_url' => $storeLogo ? Storage::disk('public')->url($storeLogo) : null,
                 'customer_verification' => $settings['customer_verification'] ?? '0',
+                'cancel_order_enabled' => $settings['cancel_order_enabled'] ?? '1',
+                'cancel_order_hours' => $settings['cancel_order_hours'] ?? '1',
+                'general_description' => $settings['general_description'] ?? null,
                 'whatsapp_number' => $settings['whatsapp_number'] ?? null,
                 'shipping_fee' => $settings['shipping_fee'] ?? (string) Order::SHIPPING_FEE,
                 'free_shipping_threshold' => $settings['free_shipping_threshold'] ?? (string) Order::FREE_SHIPPING_THRESHOLD,

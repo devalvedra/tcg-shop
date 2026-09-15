@@ -15,7 +15,6 @@ class AddToCartRequest extends FormRequest
     {
         return [
             'quantity' => ['required', 'integer', 'min:1', 'max:99'],
-            'down_payment' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

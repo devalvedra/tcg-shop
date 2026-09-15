@@ -1,11 +1,9 @@
 export type PaymentMethodOption = {
     id: number;
     name: string;
+    account_name: string | null;
     code: string;
-    description: string | null;
-    instructions: string | null;
     is_active: boolean;
-    sort_order: number;
     created_at: string;
     updated_at: string;
 };

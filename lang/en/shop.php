@@ -68,6 +68,8 @@ return [
     'checkout_preorder_closed' => ':product is no longer available for pre-order.',
 
     'order_only_pending_cancel' => 'Only pending orders can be cancelled.',
+    'order_cannot_cancel' => 'This order can no longer be cancelled.',
+    'order_notes_updated' => 'Order notes updated.',
     'order_cancelled' => 'Order cancelled.',
     'order_updated' => 'Order updated.',
 

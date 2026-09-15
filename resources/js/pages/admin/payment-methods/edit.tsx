@@ -37,7 +37,7 @@ export default function EditPaymentMethod({ paymentMethod }: Props) {
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {t(
-                            'Update the name, instructions, or availability of this payment method.',
+                            'Update the name, account details, or availability of this payment method.',
                         )}
                     </p>
                 </div>

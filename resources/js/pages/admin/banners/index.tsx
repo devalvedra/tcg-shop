@@ -326,9 +326,7 @@ export default function BannersIndex({ banners, filters }: Props) {
                                 </h2>
                                 <p className="max-w-sm text-sm text-muted-foreground">
                                     {filters.search || filters.status
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Add your first banner to promote a sale or new set on the store front page.',
                                           )}

@@ -11,8 +11,6 @@ class Cart
 {
     private const string SESSION_KEY = 'cart.items';
 
-    private const string DOWN_PAYMENTS_KEY = 'cart.down_payments';
-
     /**
      * Get the raw cart contents.
      *
@@ -23,28 +21,6 @@ class Cart
         $contents = session(self::SESSION_KEY, []);
 
         return is_array($contents) ? $contents : [];
-    }
-
-    /**
-     * Get the raw down payments.
-     *
-     * @return array<int, float> product id => down payment
-     */
-    private function downPayments(): array
-    {
-        $downPayments = session(self::DOWN_PAYMENTS_KEY, []);
-
-        return is_array($downPayments) ? $downPayments : [];
-    }
-
-    /**
-     * Get the down payment stored for a product, if any.
-     */
-    private function downPaymentFor(int $productId): float
-    {
-        $stored = (float) ($this->downPayments()[$productId] ?? 0);
-
-        return round(max(0, $stored), 2);
     }
 
     /**
@@ -68,12 +44,10 @@ class Cart
                 $quantity = (int) $contents[$product->id];
                 $subtotal = round($unitPrice * $quantity, 2);
 
-                $downPayment = $product->status === Product::STATUS_PRE_ORDER
-                    ? $this->downPaymentFor($product->id)
-                    : 0.0;
+                $downPayment = round((float) $product->down_payment * $quantity, 2);
 
                 $clampedDownPayment = round(
-                    min((float) $downPayment, max(0, $subtotal - 0.01)),
+                    max(0, min($downPayment, max(0, $subtotal - 0.01))),
                     2,
                 );
 
@@ -88,33 +62,28 @@ class Cart
             ->values();
     }
 
-    public function add(Product $product, int $quantity = 1, ?float $downPayment = null): void
+    public function add(Product $product, int $quantity = 1): void
     {
         $contents = $this->contents();
-        $newQuantity = ($contents[$product->id] ?? 0) + $quantity;
-        $contents[$product->id] = $newQuantity;
+        $contents[$product->id] = ($contents[$product->id] ?? 0) + $quantity;
 
         $this->put($contents);
-        $this->setDownPayment($product, $downPayment, $newQuantity);
     }
 
-    public function update(Product $product, ?int $quantity = null, ?float $downPayment = null): void
+    public function update(Product $product, ?int $quantity = null): void
     {
         $contents = $this->contents();
 
         if ($quantity !== null && $quantity < 1) {
             unset($contents[$product->id]);
             $this->put($contents);
-            $this->forgetDownPayment($product->id);
 
             return;
         }
 
-        $newQuantity = $quantity ?? ($contents[$product->id] ?? 1);
-        $contents[$product->id] = $newQuantity;
+        $contents[$product->id] = $quantity ?? ($contents[$product->id] ?? 1);
 
         $this->put($contents);
-        $this->setDownPayment($product, $downPayment, $newQuantity);
     }
 
     public function remove(Product $product): void
@@ -123,12 +92,11 @@ class Cart
         unset($contents[$product->id]);
 
         $this->put($contents);
-        $this->forgetDownPayment($product->id);
     }
 
     public function clear(): void
     {
-        session()->forget([self::SESSION_KEY, self::DOWN_PAYMENTS_KEY]);
+        session()->forget(self::SESSION_KEY);
     }
 
     public function quantity(int $productId): int
@@ -151,7 +119,7 @@ class Cart
      *
      * Lines whose product can no longer be ordered are removed, and quantities
      * that exceed the available stock are lowered to the maximum orderable
-     * amount. Down payments for adjusted lines are clamped accordingly.
+     * amount.
      *
      * @return array{removed: list<string>, clamped: bool}
      */
@@ -218,43 +186,6 @@ class Cart
     }
 
     /**
-     * Store (or clear) the down payment for a pre-order item.
-     *
-     * The amount is always clamped to be lower than the item subtotal so the
-     * invariant "down payment < subtotal" holds even if a quantity or price
-     * changes after the amount was chosen.
-     */
-    private function setDownPayment(Product $product, ?float $downPayment, int $quantity): void
-    {
-        $downPayments = $this->downPayments();
-
-        if ($product->status !== Product::STATUS_PRE_ORDER) {
-            $this->forgetDownPayment($product->id);
-
-            return;
-        }
-
-        $max = max(0, round(((float) ($product->sell_price ?? $product->price)) * $quantity - 0.01, 2));
-        $amount = $downPayment !== null
-            ? (float) $downPayment
-            : $this->downPaymentFor($product->id);
-
-        $downPayments[$product->id] = min(max(0, round($amount, 2)), $max);
-        $this->putDownPayments($downPayments);
-    }
-
-    /**
-     * Remove the down payment for a product.
-     */
-    private function forgetDownPayment(int $productId): void
-    {
-        $downPayments = $this->downPayments();
-        unset($downPayments[$productId]);
-
-        $this->putDownPayments($downPayments);
-    }
-
-    /**
      * Determine whether a product can currently be ordered by this customer.
      */
     private function isOrderable(Product $product): bool
@@ -279,7 +210,6 @@ class Cart
         unset($contents[$productId]);
 
         $this->put($contents);
-        $this->forgetDownPayment($productId);
     }
 
     /**
@@ -288,13 +218,5 @@ class Cart
     private function put(array $contents): void
     {
         session([self::SESSION_KEY => $contents]);
-    }
-
-    /**
-     * @param  array<int, float>  $downPayments
-     */
-    private function putDownPayments(array $downPayments): void
-    {
-        session([self::DOWN_PAYMENTS_KEY => $downPayments]);
     }
 }

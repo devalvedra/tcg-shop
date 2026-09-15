@@ -6,9 +6,7 @@ export type OrderStatus =
     | 'completed'
     | 'cancelled';
 
-export type PaymentStatus = 'unpaid' | 'paid' | 'refunded';
-
-export type DownPaymentStatus = 'unpaid' | 'paid';
+export type PaymentStatus = 'unpaid' | 'dp' | 'paid';
 
 export type PaymentMethod = 'gcash' | 'maya' | 'bank-transfer' | 'cod';
 
@@ -42,7 +40,6 @@ export type Order = {
     payment_method: PaymentMethod | null;
     payment_status: PaymentStatus;
     down_payment: string;
-    down_payment_status: DownPaymentStatus;
     subtotal: string;
     shipping_fee: string;
     discount: string;
@@ -50,6 +47,9 @@ export type Order = {
     notes: string | null;
     shipping_address: string | null;
     shipping_city: string | null;
+    shipping_province: string | null;
+    shipping_district: string | null;
+    shipping_subdistrict: string | null;
     shipping_zip: string | null;
     receiver_name: string | null;
     promo_code: { id: number; code: string; name: string } | null;

@@ -14,14 +14,8 @@ trait PaymentMethodValidationRules
      */
     protected function prepareForValidation(): void
     {
-        foreach (['description', 'instructions'] as $field) {
-            if ($this->input($field) === '') {
-                $this->merge([$field => null]);
-            }
-        }
-
-        if ($this->input('sort_order') === '' || $this->input('sort_order') === null) {
-            $this->merge(['sort_order' => 0]);
+        if ($this->input('account_name') === '') {
+            $this->merge(['account_name' => null]);
         }
 
         if ($this->has('is_active')) {
@@ -40,16 +34,14 @@ trait PaymentMethodValidationRules
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'account_name' => ['nullable', 'string', 'max:255'],
             'code' => [
                 'required',
                 'string',
                 'max:100',
                 Rule::unique('payment_methods', 'code')->ignore($ignoreId),
             ],
-            'description' => ['nullable', 'string', 'max:500'],
-            'instructions' => ['nullable', 'string', 'max:2000'],
             'is_active' => ['sometimes', 'boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

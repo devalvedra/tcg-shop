@@ -6,6 +6,7 @@ import AppearanceTabs from '@/components/appearance-tabs';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { AddressManager } from '@/components/store/address-manager';
+import type { RegionOption } from '@/components/store/region-fields';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,9 +19,14 @@ type Props = {
     auth: Auth;
     passwordRules: string;
     addresses: Address[];
+    provinces: RegionOption[];
 };
 
-export default function StoreProfile({ passwordRules, addresses }: Props) {
+export default function StoreProfile({
+    passwordRules,
+    addresses,
+    provinces,
+}: Props) {
     const { auth } = usePage<Props>().props;
     const user = auth.user;
 
@@ -76,7 +82,9 @@ export default function StoreProfile({ passwordRules, addresses }: Props) {
                                     <>
                                         <div className="grid gap-2">
                                             <Label htmlFor="name">
-                                                {t('Name')}
+                                                {t(
+                                                    'Account Name (Facebook, Whatsapp, or Other Social Media)',
+                                                )}
                                             </Label>
                                             <Input
                                                 id="name"
@@ -125,7 +133,10 @@ export default function StoreProfile({ passwordRules, addresses }: Props) {
 
                     <Card>
                         <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
-                            <AddressManager addresses={addresses} />
+                            <AddressManager
+                                addresses={addresses}
+                                provinces={provinces}
+                            />
                         </CardContent>
                     </Card>
 

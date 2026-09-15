@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Store;
 
 use App\Http\Controllers\Controller;
+use App\Models\Province;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -22,6 +23,9 @@ class ProfileController extends Controller
                 ->orderByDesc('is_default')
                 ->orderByDesc('id')
                 ->get(),
+            'provinces' => Province::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,7 +26,13 @@ class ReportController extends Controller
     {
         return Inertia::render('admin/reports/selling-products', [
             'rows' => $this->sellingProductsRows($request),
-            'filters' => $this->filters($request, ['search']),
+            'filters' => [
+                ...$this->filters($request, ['search']),
+                'type' => $request->input('type') ?: null,
+                'statuses' => $this->statusFilter($request),
+            ],
+            'orderStatuses' => Order::STATUS_LABELS,
+            'productTypes' => Product::STATUS_LABELS,
         ]);
     }
 
@@ -34,10 +41,11 @@ class ReportController extends Controller
         $rows = $this->sellingProductsRows($request);
 
         return $this->excelDownload('selling-product-report', [
-            ['Rank', 'Product', 'Category', 'Created date', 'Stock', 'Units sold', 'Revenue'],
+            ['Rank', 'Product', 'Type', 'Category', 'Created date', 'Stock', 'Units sold', 'Revenue'],
             ...collect($rows)->map(fn ($row, $index) => [
                 $index + 1,
                 $row['product_name'],
+                $row['product_status'],
                 $row['category'],
                 $row['created_at'],
                 (int) $row['stock'],
@@ -145,14 +153,20 @@ class ReportController extends Controller
     /**
      * Build the selling products rows.
      *
-     * @return array<int, array{product_name: string, category: string, created_at: string|null, stock: int, units_sold: int, total_revenue: float}>
+     * @return array<int, array{product_name: string, category: string, product_status: string, created_at: string|null, stock: int, units_sold: int, total_revenue: float}>
      */
     private function sellingProductsRows(Request $request): array
     {
         $query = OrderItem::query()
             ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
             ->whereHas('order', function ($query) use ($request) {
-                $query->whereNot('status', Order::STATUS_CANCELLED);
+                $statuses = $this->statusFilter($request);
+
+                if ($statuses !== []) {
+                    $query->whereIn('status', $statuses);
+                } else {
+                    $query->whereNot('status', Order::STATUS_CANCELLED);
+                }
 
                 if ($request->filled('from')) {
                     $query->whereDate('created_at', '>=', $request->input('from'));
@@ -167,8 +181,12 @@ class ReportController extends Controller
 
                 $query->where('order_items.product_name', 'like', "%{$search}%");
             })
+            ->when($request->filled('type'), function (Builder $query) use ($request) {
+                $query->where('products.status', $request->input('type'));
+            })
             ->select('order_items.product_name')
             ->selectRaw("COALESCE(MAX(products.category), '') as category")
+            ->selectRaw("COALESCE(MAX(products.status), '') as product_status")
             ->selectRaw('MAX(products.created_at) as created_at')
             ->selectRaw('COALESCE(MAX(products.stock), 0) as stock')
             ->selectRaw('SUM(order_items.quantity) as units_sold')
@@ -183,6 +201,7 @@ class ReportController extends Controller
             return [
                 'product_name' => $row->product_name,
                 'category' => (string) $row->getAttribute('category'),
+                'product_status' => (string) $row->getAttribute('product_status'),
                 'created_at' => $createdAt ? Carbon::parse((string) $createdAt)->format('d/m/Y') : null,
                 'stock' => (int) $row->getAttribute('stock'),
                 'units_sold' => (int) $row->getAttribute('units_sold'),
@@ -429,6 +448,29 @@ class ReportController extends Controller
     }
 
     /**
+     * The order statuses selected in the request, limited to known values.
+     *
+     * @return list<string>
+     */
+    private function statusFilter(Request $request): array
+    {
+        $statuses = $request->input('statuses', []);
+
+        if (is_string($statuses)) {
+            $statuses = explode(',', $statuses);
+        }
+
+        if (! is_array($statuses)) {
+            return [];
+        }
+
+        return array_values(array_intersect(
+            array_map('strval', $statuses),
+            array_keys(Order::STATUS_LABELS),
+        ));
+    }
+
+    /**
      * The active report filters, including any extra named filter.
      *
      * @param  list<string>  $extra
@@ -455,7 +497,7 @@ class ReportController extends Controller
      */
     private function excelDownload(string $slug, array $rows): BinaryFileResponse
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $spreadsheet->getActiveSheet()->fromArray($rows, null, 'A1');
 
         $path = tempnam(sys_get_temp_dir(), 'report-');

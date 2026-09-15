@@ -337,9 +337,7 @@ export default function CustomersIndex({
                                 </h2>
                                 <p className="max-w-sm text-sm text-muted-foreground">
                                     {filters.search
-                                        ? t(
-                                              'Try a different search term.',
-                                          )
+                                        ? t('Try a different search term.')
                                         : t(
                                               'Add your first customer to start building your collector community.',
                                           )}

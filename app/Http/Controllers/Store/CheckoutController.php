@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\PromoCode;
+use App\Models\Province;
 use App\Models\ShopSetting;
 use App\Services\Cart;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,9 @@ class CheckoutController extends Controller
                 ->orderByDesc('is_default')
                 ->orderByDesc('id')
                 ->get(),
+            'provinces' => Province::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -109,6 +113,9 @@ class CheckoutController extends Controller
                 'receiver_name' => $address->receiver_name,
                 'shipping_address' => $address->address,
                 'shipping_city' => $address->city,
+                'shipping_province' => $address->province,
+                'shipping_district' => $address->district,
+                'shipping_subdistrict' => $address->subdistrict,
                 'shipping_zip' => $address->zip,
             ]);
 
@@ -155,6 +162,7 @@ class CheckoutController extends Controller
         return Inertia::render('store/orders/confirmation', [
             'order' => $order,
             'paymentMethods' => PaymentMethod::options(),
+            'whatsappNumber' => ShopSetting::get('whatsapp_number') ?: null,
         ]);
     }
 

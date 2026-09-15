@@ -122,7 +122,7 @@ export function AppSidebar() {
                 <div className="relative overflow-hidden rounded-lg">
                     <div
                         aria-hidden
-                        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-violet-600/40 via-indigo-500/20 to-transparent"
+                        className="pointer-events-none absolute inset-0"
                     />
                     <SidebarMenu className="relative">
                         <SidebarMenuItem>

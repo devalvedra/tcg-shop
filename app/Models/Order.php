@@ -21,13 +21,15 @@ use Illuminate\Support\Str;
  * @property string $payment_status
  * @property string $subtotal
  * @property string $down_payment
- * @property string $down_payment_status
  * @property string $shipping_fee
  * @property string $discount
  * @property string $total
  * @property string|null $notes
  * @property string|null $shipping_address
  * @property string|null $shipping_city
+ * @property string|null $shipping_province
+ * @property string|null $shipping_district
+ * @property string|null $shipping_subdistrict
  * @property string|null $shipping_zip
  * @property string|null $receiver_name
  * @property int|null $promo_code_id
@@ -37,7 +39,7 @@ use Illuminate\Support\Str;
  * @property-read PromoCode|null $promoCode
  * @property-read Collection<int, OrderItem> $items
  */
-#[Fillable(['customer_id', 'status', 'payment_method', 'payment_status', 'subtotal', 'down_payment', 'down_payment_status', 'shipping_fee', 'discount', 'total', 'notes', 'shipping_address', 'shipping_city', 'shipping_zip', 'receiver_name', 'promo_code_id'])]
+#[Fillable(['customer_id', 'status', 'payment_method', 'payment_status', 'subtotal', 'down_payment', 'shipping_fee', 'discount', 'total', 'notes', 'shipping_address', 'shipping_city', 'shipping_province', 'shipping_district', 'shipping_subdistrict', 'shipping_zip', 'receiver_name', 'promo_code_id'])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
@@ -109,17 +111,17 @@ class Order extends Model
 
     public const string PAYMENT_STATUS_UNPAID = 'unpaid';
 
-    public const string PAYMENT_STATUS_PAID = 'paid';
+    public const string PAYMENT_STATUS_DP = 'dp';
 
-    public const string PAYMENT_STATUS_REFUNDED = 'refunded';
+    public const string PAYMENT_STATUS_PAID = 'paid';
 
     /**
      * @var array<int, string>
      */
     public const array PAYMENT_STATUSES = [
         self::PAYMENT_STATUS_UNPAID,
+        self::PAYMENT_STATUS_DP,
         self::PAYMENT_STATUS_PAID,
-        self::PAYMENT_STATUS_REFUNDED,
     ];
 
     /**
@@ -127,27 +129,7 @@ class Order extends Model
      */
     public const array PAYMENT_STATUS_LABELS = [
         'unpaid' => 'Unpaid',
-        'paid' => 'Paid',
-        'refunded' => 'Refunded',
-    ];
-
-    public const string DOWN_PAYMENT_STATUS_UNPAID = 'unpaid';
-
-    public const string DOWN_PAYMENT_STATUS_PAID = 'paid';
-
-    /**
-     * @var array<int, string>
-     */
-    public const array DOWN_PAYMENT_STATUSES = [
-        self::DOWN_PAYMENT_STATUS_UNPAID,
-        self::DOWN_PAYMENT_STATUS_PAID,
-    ];
-
-    /**
-     * @var array<string, string>
-     */
-    public const array DOWN_PAYMENT_STATUS_LABELS = [
-        'unpaid' => 'Unpaid',
+        'dp' => 'Down payment paid',
         'paid' => 'Paid',
     ];
 
@@ -203,6 +185,14 @@ class Order extends Model
         } while (static::query()->where('order_number', $orderNumber)->exists());
 
         return $orderNumber;
+    }
+
+    /**
+     * Determine whether this order includes a down payment.
+     */
+    public function hasDownPayment(): bool
+    {
+        return (float) $this->down_payment > 0;
     }
 
     /**

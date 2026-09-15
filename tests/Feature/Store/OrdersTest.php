@@ -2,6 +2,7 @@
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ShopSetting;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -70,7 +71,8 @@ test('a customer can view an order detail page', function () {
             ->where('order.id', $order->id)
             ->where('order.down_payment', '50.00')
             ->has('order.items', 2)
-            ->has('downPaymentStatuses'));
+            ->has('cancelOrder')
+            ->has('paymentStatuses'));
 });
 
 test('an order item product image is exposed as a public url', function () {
@@ -156,5 +158,73 @@ test('a customer cannot cancel another customers order', function () {
 
     $this->actingAs($other)
         ->delete(route('orders.cancel', $order))
+        ->assertForbidden();
+});
+
+test('a pending order outside the cancellation window cannot be cancelled', function () {
+    $customer = User::factory()->create();
+    $order = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PENDING,
+        'created_at' => now()->subHours(5),
+    ]);
+
+    $this->actingAs($customer)
+        ->delete(route('orders.cancel', $order))
+        ->assertRedirect();
+
+    expect($order->fresh()->status)->toBe(Order::STATUS_PENDING);
+});
+
+test('order cancellation can be disabled in the settings', function () {
+    $customer = User::factory()->create();
+    ShopSetting::setMany(['cancel_order_enabled' => '0']);
+    $order = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PENDING,
+    ]);
+
+    $this->actingAs($customer)
+        ->delete(route('orders.cancel', $order))
+        ->assertRedirect();
+
+    expect($order->fresh()->status)->toBe(Order::STATUS_PENDING);
+});
+
+test('a customer can update their order notes', function () {
+    $customer = User::factory()->create();
+    $order = Order::factory()->create(['customer_id' => $customer->id]);
+
+    $this->actingAs($customer)
+        ->put(route('orders.notes', $order), ['notes' => 'Please bubble wrap.'])
+        ->assertRedirect();
+
+    expect($order->fresh()->notes)->toBe('Please bubble wrap.');
+});
+
+test('a customer can download their order invoice', function () {
+    $customer = User::factory()->create();
+    $order = Order::factory()->withItems(1)->create([
+        'customer_id' => $customer->id,
+        'down_payment' => '20.00',
+    ]);
+
+    $response = $this->actingAs($customer)
+        ->get(route('orders.invoice', $order))
+        ->assertOk();
+
+    expect($response->headers->get('content-type'))
+        ->toContain('application/pdf')
+        ->and($response->headers->get('content-disposition'))
+        ->toContain("invoice-{$order->order_number}.pdf");
+});
+
+test('a customer cannot download another customers invoice', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+    $order = Order::factory()->create(['customer_id' => $owner->id]);
+
+    $this->actingAs($other)
+        ->get(route('orders.invoice', $order))
         ->assertForbidden();
 });

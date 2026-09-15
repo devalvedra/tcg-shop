@@ -29,7 +29,7 @@ export function ProductCard({
 
     const card = (
         <Card className="group h-full gap-0 overflow-hidden py-0">
-            <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
+            <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
                 {image ? (
                     <img
                         src={image}

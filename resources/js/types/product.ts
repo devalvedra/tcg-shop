@@ -19,10 +19,12 @@ export type Product = {
     name: string;
     slug: string;
     description: string | null;
+    youtube_link: string | null;
     category: string;
     category_name: string;
     price: string;
     sell_price: string | null;
+    down_payment: string;
     stock: number;
     status: ProductStatus;
     open_po_date: string | null;

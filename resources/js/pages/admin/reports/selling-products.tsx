@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { Download, Package, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,11 +11,14 @@ type Filters = {
     from?: string | null;
     to?: string | null;
     search?: string | null;
+    type?: string | null;
+    statuses?: string[];
 };
 
 type Row = {
     product_name: string;
     category: string;
+    product_status: string;
     created_at: string | null;
     stock: number;
     units_sold: number;
@@ -25,16 +28,27 @@ type Row = {
 type Props = {
     rows: Row[];
     filters: Filters;
+    orderStatuses: Record<string, string>;
+    productTypes: Record<string, string>;
 };
 
-const hasFilters = (filters: Filters) =>
-    Boolean(filters.from || filters.to || filters.search);
+const selectClasses =
+    'h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
-export default function SellingProductsReport({ rows, filters }: Props) {
+export default function SellingProductsReport({
+    rows,
+    filters,
+    orderStatuses,
+    productTypes,
+}: Props) {
     const query = {
         ...(filters.from ? { from: filters.from } : {}),
         ...(filters.to ? { to: filters.to } : {}),
         ...(filters.search ? { search: filters.search } : {}),
+        ...(filters.type ? { type: filters.type } : {}),
+        ...(filters.statuses && filters.statuses.length > 0
+            ? { statuses: filters.statuses }
+            : {}),
     };
 
     return (
@@ -53,11 +67,9 @@ export default function SellingProductsReport({ rows, filters }: Props) {
                     </div>
                     <Button asChild variant="outline">
                         <a
-                            href={
-                                reportsRoutes.sellingProducts.export.url({
-                                    query,
-                                })
-                            }
+                            href={reportsRoutes.sellingProducts.export.url({
+                                query,
+                            })}
                         >
                             <Download className="size-4" />
                             {t('Export Excel')}
@@ -107,17 +119,62 @@ export default function SellingProductsReport({ rows, filters }: Props) {
                                         className="w-40"
                                     />
                                 </div>
+                                <div className="grid gap-1.5">
+                                    <span className="text-xs text-muted-foreground">
+                                        {t('Product type')}
+                                    </span>
+                                    <select
+                                        name="type"
+                                        defaultValue={filters.type ?? ''}
+                                        className={selectClasses}
+                                        aria-label={t('Product type')}
+                                    >
+                                        <option value="">
+                                            {t('All types')}
+                                        </option>
+                                        {Object.entries(productTypes).map(
+                                            ([value, label]) => (
+                                                <option
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {t(label)}
+                                                </option>
+                                            ),
+                                        )}
+                                    </select>
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <span className="text-xs text-muted-foreground">
+                                        {t('Order status')}
+                                    </span>
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-input px-3 py-2">
+                                        {Object.entries(orderStatuses).map(
+                                            ([value, label]) => (
+                                                <label
+                                                    key={value}
+                                                    className="flex items-center gap-1.5 text-xs"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        name="statuses[]"
+                                                        value={value}
+                                                        defaultChecked={(
+                                                            filters.statuses ??
+                                                            []
+                                                        ).includes(value)}
+                                                        className="size-3.5 accent-indigo-600"
+                                                    />
+                                                    {t(label)}
+                                                </label>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
                                 <Button type="submit" variant="outline">
                                     <Search className="size-4" />
                                     {t('Search')}
                                 </Button>
-                                {hasFilters(filters) && (
-                                    <Button asChild variant="ghost">
-                                        <Link href={sellingProducts()}>
-                                            {t('Clear')}
-                                        </Link>
-                                    </Button>
-                                )}
                             </Form>
                         </div>
 
@@ -131,6 +188,9 @@ export default function SellingProductsReport({ rows, filters }: Props) {
                                             </th>
                                             <th className="px-4 py-3 font-medium">
                                                 {t('Product')}
+                                            </th>
+                                            <th className="hidden px-4 py-3 font-medium md:table-cell">
+                                                {t('Product type')}
                                             </th>
                                             <th className="hidden px-4 py-3 font-medium md:table-cell">
                                                 {t('Category')}
@@ -160,6 +220,17 @@ export default function SellingProductsReport({ rows, filters }: Props) {
                                                 </td>
                                                 <td className="px-4 py-3 font-medium">
                                                     {row.product_name}
+                                                </td>
+                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                    {row.product_status
+                                                        ? t(
+                                                              productTypes[
+                                                                  row
+                                                                      .product_status
+                                                              ] ??
+                                                                  row.product_status,
+                                                          )
+                                                        : '—'}
                                                 </td>
                                                 <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
                                                     {row.category || '—'}

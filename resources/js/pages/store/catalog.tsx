@@ -118,14 +118,6 @@ export default function Catalog({ products, filters, categories }: Props) {
                                 {t('Price: High to Low')}
                             </option>
                         </select>
-                        {/* <Button
-                            type="submit"
-                            variant="outline"
-                            className="justify-self-end"
-                        >
-                            <Search className="size-4" />
-                            {t('Search')}
-                        </Button> */}
                         {hasFilters(filters) && (
                             <Button variant="outline">
                                 <Delete className="size-4" />
@@ -139,7 +131,7 @@ export default function Catalog({ products, filters, categories }: Props) {
 
                 {products.data.length > 0 ? (
                     <>
-                        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                             {products.data.map((product) => (
                                 <ProductCard
                                     key={product.id}

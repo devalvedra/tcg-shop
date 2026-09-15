@@ -11,9 +11,14 @@ import {
 type Props = {
     categories: Record<string, string>;
     statuses: Record<string, string>;
+    generalDescription?: string | null;
 };
 
-export default function CreateProduct({ categories, statuses }: Props) {
+export default function CreateProduct({
+    categories,
+    statuses,
+    generalDescription,
+}: Props) {
     return (
         <>
             <Head title={t('Add Product')} />
@@ -42,7 +47,11 @@ export default function CreateProduct({ categories, statuses }: Props) {
                     </p>
                 </div>
 
-                <ProductForm categories={categories} statuses={statuses} />
+                <ProductForm
+                    categories={categories}
+                    statuses={statuses}
+                    generalDescription={generalDescription}
+                />
             </div>
         </>
     );

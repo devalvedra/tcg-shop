@@ -44,7 +44,7 @@ class OrderController extends Controller
 
         return Inertia::render('admin/orders/index', [
             'orders' => $orders,
-            'filters' => $request->only(['search', 'status', 'customer', 'product', 'from', 'to', 'sort', 'direction']),
+            'filters' => $request->only(['search', 'status', 'payment_status', 'customer', 'product', 'from', 'to', 'sort', 'direction']),
             'statuses' => Order::STATUS_LABELS,
             'paymentStatuses' => Order::PAYMENT_STATUS_LABELS,
         ]);
@@ -78,7 +78,6 @@ class OrderController extends Controller
                 'Products',
                 'Subtotal',
                 'Down Payment',
-                'Down Payment Status',
                 'Shipping Fee',
                 'Discount',
                 'Total',
@@ -99,7 +98,6 @@ class OrderController extends Controller
                     $order->items->pluck('product_name')->implode(' | '),
                     (float) $order->subtotal,
                     (float) $order->down_payment,
-                    $order->down_payment_status,
                     (float) $order->shipping_fee,
                     (float) $order->discount,
                     (float) $order->total,
@@ -126,7 +124,6 @@ class OrderController extends Controller
             'statuses' => Order::STATUS_LABELS,
             'paymentMethods' => PaymentMethod::options(),
             'paymentStatuses' => Order::PAYMENT_STATUS_LABELS,
-            'downPaymentStatuses' => Order::DOWN_PAYMENT_STATUS_LABELS,
         ]);
     }
 
@@ -189,6 +186,9 @@ class OrderController extends Controller
             })
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->input('status'));
+            })
+            ->when($request->filled('payment_status'), function ($query) use ($request) {
+                $query->where('payment_status', $request->input('payment_status'));
             });
     }
 }

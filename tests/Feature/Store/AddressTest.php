@@ -1,6 +1,10 @@
 <?php
 
 use App\Models\Address;
+use App\Models\City;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\Subdistrict;
 use App\Models\User;
 
 test('guests are redirected to login when managing addresses', function () {
@@ -176,4 +180,52 @@ test('a customer cannot delete another customers address', function () {
         ->assertForbidden();
 
     $this->assertDatabaseHas('addresses', ['id' => $address->id]);
+});
+
+test('region lookup endpoints return the child regions', function () {
+    $user = User::factory()->create();
+
+    Province::create(['id' => '99', 'name' => 'Test Province']);
+    $city = City::create(['id' => '99.01', 'province_id' => '99', 'name' => 'Test City']);
+    $district = District::create(['id' => '99.01.01', 'city_id' => '99.01', 'name' => 'Test District']);
+    Subdistrict::create(['id' => '99.01.01.2001', 'district_id' => '99.01.01', 'name' => 'Test Subdistrict']);
+
+    $this->actingAs($user)
+        ->getJson(route('regions.cities', '99'))
+        ->assertOk()
+        ->assertJsonFragment(['name' => 'Test City']);
+
+    $this->actingAs($user)
+        ->getJson(route('regions.districts', '99.01'))
+        ->assertOk()
+        ->assertJsonFragment(['name' => 'Test District']);
+
+    $this->actingAs($user)
+        ->getJson(route('regions.subdistricts', '99.01.01'))
+        ->assertOk()
+        ->assertJsonFragment(['name' => 'Test Subdistrict']);
+});
+
+test('an address can be saved with province, district, and subdistrict', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('addresses.store'), [
+            'receiver_name' => 'Ash Ketchum',
+            'address' => '123 Card Lane',
+            'province' => 'Test Province',
+            'city' => 'Test City',
+            'district' => 'Test District',
+            'subdistrict' => 'Test Subdistrict',
+            'zip' => '1234',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('addresses', [
+        'user_id' => $user->id,
+        'province' => 'Test Province',
+        'city' => 'Test City',
+        'district' => 'Test District',
+        'subdistrict' => 'Test Subdistrict',
+    ]);
 });

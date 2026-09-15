@@ -45,11 +45,11 @@ test('orders receive a unique random order number', function () {
     $this->assertSame(20, $orders->pluck('order_number')->unique()->count());
 });
 
-test('the order list includes the down payment and its status', function () {
+test('the order list includes the down payment and payment status', function () {
     $admin = User::factory()->asAdmin()->create();
     Order::factory()->create([
         'down_payment' => '50.00',
-        'down_payment_status' => Order::DOWN_PAYMENT_STATUS_PAID,
+        'payment_status' => Order::PAYMENT_STATUS_DP,
     ]);
 
     $this->actingAs($admin)
@@ -59,7 +59,7 @@ test('the order list includes the down payment and its status', function () {
             ->component('admin/orders/index')
             ->has('orders.data', 1)
             ->where('orders.data.0.down_payment', '50.00')
-            ->where('orders.data.0.down_payment_status', Order::DOWN_PAYMENT_STATUS_PAID));
+            ->where('orders.data.0.payment_status', Order::PAYMENT_STATUS_DP));
 });
 
 test('orders can be filtered by order number and status', function () {
@@ -80,6 +80,19 @@ test('orders can be filtered by order number and status', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->has('orders.data', 1)
             ->where('orders.data.0.id', $completed->id));
+});
+
+test('orders can be filtered by payment status', function () {
+    $admin = User::factory()->asAdmin()->create();
+    Order::factory()->create(['payment_status' => Order::PAYMENT_STATUS_UNPAID]);
+    $paid = Order::factory()->create(['payment_status' => Order::PAYMENT_STATUS_PAID]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.orders.index', ['payment_status' => Order::PAYMENT_STATUS_PAID]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('orders.data', 1)
+            ->where('orders.data.0.id', $paid->id));
 });
 
 test('orders can be sorted by customer name', function () {
@@ -251,7 +264,6 @@ test('an order status can be updated by an admin', function () {
         ->put(route('admin.orders.update', $order), [
             'status' => Order::STATUS_SHIPPED,
             'payment_status' => Order::PAYMENT_STATUS_PAID,
-            'down_payment_status' => Order::DOWN_PAYMENT_STATUS_PAID,
         ])
         ->assertRedirect();
 
@@ -259,7 +271,6 @@ test('an order status can be updated by an admin', function () {
         'id' => $order->id,
         'status' => Order::STATUS_SHIPPED,
         'payment_status' => Order::PAYMENT_STATUS_PAID,
-        'down_payment_status' => Order::DOWN_PAYMENT_STATUS_PAID,
     ]);
 });
 
@@ -270,9 +281,8 @@ test('an invalid order status is rejected', function () {
     $this->actingAs($admin)
         ->put(route('admin.orders.update', $order), [
             'status' => 'not-a-status',
-            'down_payment_status' => 'not-a-status',
         ])
-        ->assertSessionHasErrors(['status', 'down_payment_status']);
+        ->assertSessionHasErrors(['status']);
 
     $this->assertDatabaseHas('orders', [
         'id' => $order->id,

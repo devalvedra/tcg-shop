@@ -26,8 +26,8 @@ test('payment methods can be listed by an admin', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('admin/payment-methods/index')
             ->has('paymentMethods.data', 5)
-            ->where('paymentMethods.data.0.name', 'Palawan Pay')
-            ->where('paymentMethods.data.0.code', 'palawan'));
+            ->where('paymentMethods.data.4.name', 'Palawan Pay')
+            ->where('paymentMethods.data.4.code', 'palawan'));
 });
 
 test('payment methods can be searched', function () {
@@ -49,18 +49,15 @@ test('an admin can create a payment method', function () {
     $this->actingAs($admin)
         ->post(route('admin.payment-methods.store'), [
             'name' => 'Palawan Pay',
+            'account_name' => 'Juan Dela Cruz',
             'code' => '0917-654-3210',
-            'description' => 'Pay over the counter',
-            'instructions' => 'Visit any Palawan branch and pay with your order number.',
-            'sort_order' => '5',
         ])
         ->assertRedirect(route('admin.payment-methods.index'));
 
     $this->assertDatabaseHas('payment_methods', [
         'name' => 'Palawan Pay',
+        'account_name' => 'Juan Dela Cruz',
         'code' => '0917-654-3210',
-        'description' => 'Pay over the counter',
-        'sort_order' => 5,
         'is_active' => true,
     ]);
 });
@@ -112,19 +109,17 @@ test('an admin can update a payment method', function () {
     $this->actingAs($admin)
         ->put(route('admin.payment-methods.update', $method), [
             'name' => 'GCash Wallet',
+            'account_name' => 'Jane Doe',
             'code' => 'gcash-wallet',
-            'description' => 'Updated description',
             'is_active' => false,
-            'sort_order' => '9',
         ])
         ->assertRedirect(route('admin.payment-methods.index'));
 
     $this->assertDatabaseHas('payment_methods', [
         'id' => $method->id,
         'name' => 'GCash Wallet',
-        'description' => 'Updated description',
+        'account_name' => 'Jane Doe',
         'is_active' => false,
-        'sort_order' => 9,
     ]);
 });
 

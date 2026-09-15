@@ -73,6 +73,7 @@ class CatalogController extends Controller
             'product' => $product,
             'categories' => ProductCategory::options(),
             'recommended' => $recommended,
+            'youtubeEmbedUrl' => $product->youtubeEmbedUrl(),
             'cartQuantity' => $cart->quantity($product->id),
             'freeShippingThreshold' => (float) (ShopSetting::get('free_shipping_threshold') ?? Order::FREE_SHIPPING_THRESHOLD),
         ]);

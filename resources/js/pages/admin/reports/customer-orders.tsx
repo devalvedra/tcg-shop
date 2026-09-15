@@ -29,8 +29,7 @@ type Props = {
     filters: Filters;
 };
 
-const hasFilters = (filters: Filters) =>
-    Boolean(filters.customer);
+const hasFilters = (filters: Filters) => Boolean(filters.customer);
 
 export default function CustomerOrdersReport({ rows, filters }: Props) {
     const query = {
@@ -49,10 +48,7 @@ export default function CustomerOrdersReport({ rows, filters }: Props) {
         const customer = rows[i].customer_name;
         let j = i;
 
-        while (
-            j < rows.length &&
-            rows[j].customer_name === customer
-        ) {
+        while (j < rows.length && rows[j].customer_name === customer) {
             const date = rows[j].date;
             let k = j;
 
@@ -102,11 +98,9 @@ export default function CustomerOrdersReport({ rows, filters }: Props) {
                     </div>
                     <Button asChild variant="outline">
                         <a
-                            href={
-                                reportsRoutes.customerOrders.export.url({
-                                    query,
-                                })
-                            }
+                            href={reportsRoutes.customerOrders.export.url({
+                                query,
+                            })}
                         >
                             <Download className="size-4" />
                             {t('Export Excel')}
@@ -127,9 +121,7 @@ export default function CustomerOrdersReport({ rows, filters }: Props) {
                                     </span>
                                     <Input
                                         name="customer"
-                                        defaultValue={
-                                            filters.customer ?? ''
-                                        }
+                                        defaultValue={filters.customer ?? ''}
                                         placeholder={t('Filter by customer')}
                                         className="w-52"
                                     />
@@ -218,21 +210,17 @@ export default function CustomerOrdersReport({ rows, filters }: Props) {
                                                                     index
                                                                 ]
                                                             }
-                                                            className="px-4 py-3 font-semibold align-top"
+                                                            className="px-4 py-3 align-top font-semibold"
                                                         >
-                                                            {
-                                                                row.customer_name
-                                                            }
+                                                            {row.customer_name}
                                                         </td>
                                                     )}
                                                     {isDateStart && (
                                                         <td
                                                             rowSpan={
-                                                                dateRuns[
-                                                                    index
-                                                                ]
+                                                                dateRuns[index]
                                                             }
-                                                            className="px-4 py-3 text-muted-foreground align-top"
+                                                            className="px-4 py-3 align-top text-muted-foreground"
                                                         >
                                                             {row.date}
                                                         </td>
@@ -240,9 +228,7 @@ export default function CustomerOrdersReport({ rows, filters }: Props) {
                                                     {isOrderStart && (
                                                         <td
                                                             rowSpan={
-                                                                orderRuns[
-                                                                    index
-                                                                ]
+                                                                orderRuns[index]
                                                             }
                                                             className="px-4 py-3 align-top"
                                                         >

@@ -24,12 +24,15 @@ class UpdateSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'store_name' => ['required', 'string', 'max:255'],
+            'store_name' => ['nullable', 'string', 'max:255'],
             'store_email' => ['nullable', 'email', 'max:255'],
             'store_phone' => ['nullable', 'string', 'max:50'],
             'store_address' => ['nullable', 'string', 'max:500'],
             'store_logo' => ['nullable', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
             'customer_verification' => ['sometimes', 'boolean'],
+            'cancel_order_enabled' => ['sometimes', 'boolean'],
+            'cancel_order_hours' => ['sometimes', 'integer', 'min:0', 'max:720'],
+            'general_description' => ['nullable', 'string', 'max:20000'],
             'whatsapp_number' => ['nullable', 'string', 'max:50'],
             'shipping_fee' => ['required', 'numeric', 'min:0'],
             'free_shipping_threshold' => ['required', 'numeric', 'min:0'],

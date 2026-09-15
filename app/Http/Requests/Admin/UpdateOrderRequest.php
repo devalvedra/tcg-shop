@@ -19,7 +19,6 @@ class UpdateOrderRequest extends FormRequest
         return [
             'status' => ['nullable', Rule::in(Order::STATUSES)],
             'payment_status' => ['nullable', Rule::in(Order::PAYMENT_STATUSES)],
-            'down_payment_status' => ['nullable', Rule::in(Order::DOWN_PAYMENT_STATUSES)],
         ];
     }
 }
