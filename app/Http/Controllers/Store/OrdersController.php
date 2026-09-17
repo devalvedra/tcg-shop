@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -97,6 +98,7 @@ class OrdersController extends Controller
             'paymentMethod' => $this->paymentMethodDetails($order),
             'store' => [
                 'name' => $settings['store_name'] ?? config('app.name'),
+                'logo_path' => $this->storeLogoPath($settings['store_logo'] ?? null),
                 'email' => $settings['store_email'] ?? null,
                 'phone' => $settings['store_phone'] ?? null,
                 'address' => $settings['store_address'] ?? null,
@@ -104,6 +106,28 @@ class OrdersController extends Controller
         ]);
 
         return $pdf->download("invoice-{$order->order_number}.pdf");
+    }
+
+    /**
+     * Resolve the absolute path of the store logo for the PDF invoice.
+     *
+     * Only raster formats are used so the logo reliably renders in Dompdf.
+     */
+    private function storeLogoPath(?string $logo): ?string
+    {
+        if (! $logo) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($logo, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, ['jpg', 'jpeg', 'png', 'gif'], true)) {
+            return null;
+        }
+
+        return Storage::disk('public')->exists($logo)
+            ? Storage::disk('public')->path($logo)
+            : null;
     }
 
     /**

@@ -49,7 +49,11 @@
     <table style="width: 100%; border-collapse: collapse;">
         <tr>
             <td style="vertical-align: top;">
-                <p class="store-name">{{ $store['name'] }}</p>
+                @if (!empty($store['logo_path']))
+                    <img src="{{ $store['logo_path'] }}" alt="{{ $store['name'] }}" style="width: 140px; height: auto; margin-bottom: 8px;" />
+                @else
+                    <p class="store-name">{{ $store['name'] }}</p>
+                @endif
                 @if ($store['address'])
                     <div class="muted">{!! nl2br(e($store['address'])) !!}</div>
                 @endif

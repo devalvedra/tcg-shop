@@ -228,3 +228,16 @@ test('a customer cannot download another customers invoice', function () {
         ->get(route('orders.invoice', $order))
         ->assertForbidden();
 });
+
+test('the invoice falls back to the store name when the logo is missing', function () {
+    $customer = User::factory()->create();
+    ShopSetting::setMany(['store_logo' => 'logos/missing.png']);
+    $order = Order::factory()->withItems(1)->create([
+        'customer_id' => $customer->id,
+    ]);
+
+    $this->actingAs($customer)
+        ->get(route('orders.invoice', $order))
+        ->assertOk()
+        ->assertDownload("invoice-{$order->order_number}.pdf");
+});
