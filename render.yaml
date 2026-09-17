@@ -1,0 +1,58 @@
+# Render Blueprint: Docker web service + PostgreSQL database.
+#
+# Usage: push this repo to GitHub/GitLab, then in Render choose
+# "New > Blueprint" and point it at the repository. Render will create the
+# database and the web service defined below.
+#
+# Before the first deploy, set the `APP_KEY` value in the Render dashboard.
+# Generate an application key locally with:
+#   php artisan key:generate --show
+
+databases:
+  - name: tcg-shop-db
+    plan: free
+    databaseName: tcg_shop
+    user: tcg_shop
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: tcg-shop
+    runtime: docker
+    plan: free
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      # Set this in the dashboard: php artisan key:generate --show
+      - key: APP_KEY
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tcg-shop-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: FILESYSTEM_DISK
+        value: local
+      # Run migrations on boot (see docker/entrypoint.sh).
+      - key: RUN_MIGRATIONS
+        value: "true"
+      # Set to "true" for a single deploy to load the Indonesian region data,
+      # then set back to "false" (re-seeding on every boot is slow).
+      - key: SEED_REGIONS
+        value: "false"
+      # Cache config + views on boot.
+      - key: OPTIMIZE
+        value: "true"

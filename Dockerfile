@@ -49,8 +49,9 @@ RUN npm ci
 # Copy the application and compile the assets.
 COPY . .
 
-RUN composer dump-autoload --no-dev --optimize --no-interaction \
-    && APP_KEY="base64:$(php -r 'echo base64_encode(random_bytes(32));')" npm run build \
+RUN export APP_KEY="base64:$(php -r 'echo base64_encode(random_bytes(32));')" \
+    && composer dump-autoload --no-dev --optimize --no-interaction \
+    && npm run build \
     && rm -rf node_modules
 
 ###############################################################################
@@ -68,9 +69,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libonig-dev \
         libxml2-dev \
         libsqlite3-dev \
+        libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
-        gd zip pdo pdo_sqlite pdo_mysql mbstring bcmath exif opcache \
+        gd zip pdo pdo_sqlite pdo_mysql pdo_pgsql pgsql mbstring bcmath exif opcache \
     && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 
