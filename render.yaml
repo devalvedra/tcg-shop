@@ -49,6 +49,10 @@ services:
       # Run migrations on boot (see docker/entrypoint.sh).
       - key: RUN_MIGRATIONS
         value: "true"
+      # Set to "true" when the public storage link must be (re)created,
+      # otherwise the entrypoint leaves public/storage untouched.
+      - key: LINK_STORAGE
+        value: "false"
       # Set to "true" for a single deploy to load the Indonesian region data,
       # then set back to "false" (re-seeding on every boot is slow).
       - key: SEED_REGIONS
