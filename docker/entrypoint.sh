@@ -37,6 +37,15 @@ mkdir -p \
 
 touch database/database.sqlite
 
+# Link the public storage so uploaded images are served from /storage.
+# Drop a stale/broken link first so an old image never 404s.
+if [ -L public/storage ] && [ ! -e public/storage ]; then
+    rm public/storage
+fi
+if [ ! -e public/storage ]; then
+    php artisan storage:link
+fi
+
 # Run the migrations on boot unless explicitly disabled. Retry while the
 # database is still coming up.
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
