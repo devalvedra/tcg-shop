@@ -53,6 +53,10 @@ services:
       # then set back to "false" (re-seeding on every boot is slow).
       - key: SEED_REGIONS
         value: "false"
+      # Set to "true" for a single deploy to create the default admin/customer
+      # accounts, then set back to "false" (re-running resets their passwords).
+      - key: SEED_USERS
+        value: "false"
       # Cache config + views on boot.
       - key: OPTIMIZE
         value: "true"

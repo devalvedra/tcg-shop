@@ -58,6 +58,13 @@ if [ "${SEED_REGIONS:-false}" = "true" ]; then
     php artisan db:seed --class=RegionSeeder --force --no-interaction
 fi
 
+# Create the default admin/customer accounts when requested. Safe to run
+# repeatedly (users are matched by phone), but note it resets the default
+# accounts' passwords back to the seeder defaults, so enable only once.
+if [ "${SEED_USERS:-false}" = "true" ]; then
+    php artisan db:seed --class=UserSeeder --force --no-interaction
+fi
+
 # Cache config and views in production for faster responses.
 if [ "${OPTIMIZE:-false}" = "true" ]; then
     php artisan config:cache

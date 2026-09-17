@@ -14,6 +14,12 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! class_exists(\Faker\Generator::class)) {
+            $this->command?->warn('OrderSeeder requires fakerphp/faker (a dev dependency); skipping.');
+
+            return;
+        }
+
         $customer = User::where('phone', '09170000001')->first() ?? User::factory()->create([
             'name' => 'Customer User',
             'phone' => '09170000001',
