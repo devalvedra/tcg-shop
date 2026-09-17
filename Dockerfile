@@ -6,8 +6,10 @@
 # Installs PHP + Node tooling, the Composer dependencies and compiles the
 # frontend. Node is required alongside PHP because the Wayfinder Vite plugin
 # shells out to `php artisan wayfinder:generate` while building the assets.
+#
+# PHP 8.4 is required: the locked Symfony 8.x packages require PHP >= 8.4.1.
 ###############################################################################
-FROM php:8.3-cli AS build
+FROM php:8.4-cli AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -57,7 +59,7 @@ RUN export APP_KEY="base64:$(php -r 'echo base64_encode(random_bytes(32));')" \
 ###############################################################################
 # Runtime stage: Apache with mod_php serving Laravel's public/ directory.
 ###############################################################################
-FROM php:8.3-apache AS app
+FROM php:8.4-apache AS app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
