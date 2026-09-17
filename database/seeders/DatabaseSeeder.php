@@ -18,9 +18,9 @@ class DatabaseSeeder extends Seeder
             RegionSeeder::class,
             UserSeeder::class,
             ProductCategorySeeder::class,
-            ProductSeeder::class,
-            OrderSeeder::class,
             BannerSeeder::class,
+            // ProductSeeder::class,
+            // OrderSeeder::class,
         ]);
     }
 }
