@@ -85,6 +85,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('reports/customer-orders/export', [ReportController::class, 'customerOrdersExport'])->name('admin.reports.customer-orders.export');
         Route::get('reports/total-sales', [ReportController::class, 'totalSales'])->name('admin.reports.total-sales');
         Route::get('reports/total-sales/export', [ReportController::class, 'totalSalesExport'])->name('admin.reports.total-sales.export');
+        Route::get('reports/packing', [ReportController::class, 'packing'])->name('admin.reports.packing');
+        Route::get('reports/packing/export', [ReportController::class, 'packingExport'])->name('admin.reports.packing.export');
         Route::get('products', [ProductController::class, 'index'])->name('admin.products.index');
         Route::get('products/create', [ProductController::class, 'create'])->name('admin.products.create');
         Route::post('products', [ProductController::class, 'store'])->name('admin.products.store');

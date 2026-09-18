@@ -7,6 +7,7 @@ import {
     Package,
     Percent,
     ReceiptText,
+    ClipboardList,
     ShoppingCart,
     Tags,
     TrendingUp,
@@ -35,6 +36,7 @@ import { index as promoCodesIndex } from '@/routes/admin/promo-codes';
 import {
     customerBuying,
     customerOrders,
+    packing,
     sellingProducts,
     totalSales,
 } from '@/routes/admin/reports';
@@ -90,6 +92,11 @@ const salesNavItems: NavItem[] = [
 ];
 
 const reportsNavItems: NavItem[] = [
+    {
+        title: 'Packing',
+        href: packing(),
+        icon: ClipboardList,
+    },
     {
         title: 'Selling products',
         href: sellingProducts(),

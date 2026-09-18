@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use Faker\Generator;
 use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
@@ -14,8 +15,8 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        if (! class_exists(\Faker\Generator::class)) {
-            $this->command?->warn('OrderSeeder requires fakerphp/faker (a dev dependency); skipping.');
+        if (! class_exists(Generator::class)) {
+            $this->command->warn('OrderSeeder requires fakerphp/faker (a dev dependency); skipping.');
 
             return;
         }

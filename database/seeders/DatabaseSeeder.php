@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RegionSeeder::class,
             UserSeeder::class,
-                // ProductCategorySeeder::class,
-                // ProductSeeder::class,
-                // OrderSeeder::class,
+            // ProductCategorySeeder::class,
+            // ProductSeeder::class,
+            // OrderSeeder::class,
             BannerSeeder::class,
         ]);
     }

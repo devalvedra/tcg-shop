@@ -151,6 +151,34 @@ class ReportController extends Controller
     }
 
     /**
+     * Packing report: one row per product line from orders that still need
+     * to be packed (not pending, completed, or cancelled).
+     */
+    public function packing(Request $request): Response
+    {
+        return Inertia::render('admin/reports/packing', [
+            'rows' => $this->packingRows($request),
+            'filters' => $this->filters($request, ['search']),
+        ]);
+    }
+
+    public function packingExport(Request $request): BinaryFileResponse
+    {
+        $rows = $this->packingRows($request);
+
+        return $this->excelDownload('packing-report', [
+            ['Product', 'Order date', 'User', 'Quantity', 'Address'],
+            ...collect($rows)->map(fn ($row) => [
+                $row['product_name'],
+                $row['order_date'],
+                $row['user_name'],
+                (int) $row['quantity'],
+                $row['address'],
+            ])->all(),
+        ]);
+    }
+
+    /**
      * Build the selling products rows.
      *
      * @return array<int, array{product_name: string, category: string, product_status: string, created_at: string|null, stock: int, units_sold: int, total_revenue: float}>
@@ -208,6 +236,66 @@ class ReportController extends Controller
                 'total_revenue' => (float) $row->getAttribute('total_revenue'),
             ];
         })->values()->all();
+    }
+
+    /**
+     * Build the packing rows (one row per product line).
+     *
+     * @return array<int, array{product_name: string, order_date: string|null, user_name: string, quantity: int, address: string}>
+     */
+    private function packingRows(Request $request): array
+    {
+        return OrderItem::query()
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('users', 'orders.customer_id', '=', 'users.id')
+            ->whereNotIn('orders.status', [
+                Order::STATUS_PENDING,
+                Order::STATUS_COMPLETED,
+                Order::STATUS_CANCELLED,
+            ])
+            ->when($request->filled('search'), function (Builder $query) use ($request) {
+                $search = trim($request->string('search'));
+
+                $query->where('order_items.product_name', 'like', "%{$search}%");
+            })
+            ->orderBy('orders.created_at')
+            ->orderBy('orders.id')
+            ->orderBy('order_items.id')
+            ->get([
+                'order_items.product_name',
+                'orders.created_at as order_date',
+                'users.name as user_name',
+                'order_items.quantity',
+                'orders.receiver_name',
+                'orders.shipping_address',
+                'orders.shipping_subdistrict',
+                'orders.shipping_district',
+                'orders.shipping_city',
+                'orders.shipping_province',
+                'orders.shipping_zip',
+            ])
+            ->map(function (OrderItem $row): array {
+                $orderDate = $row->getAttribute('order_date');
+                $address = collect([
+                    $row->getAttribute('receiver_name'),
+                    $row->getAttribute('shipping_address'),
+                    $row->getAttribute('shipping_subdistrict'),
+                    $row->getAttribute('shipping_district'),
+                    $row->getAttribute('shipping_city'),
+                    $row->getAttribute('shipping_province'),
+                    $row->getAttribute('shipping_zip'),
+                ])->filter()->join(', ');
+
+                return [
+                    'product_name' => $row->product_name,
+                    'order_date' => $orderDate ? Carbon::parse((string) $orderDate)->format('d/m/Y') : null,
+                    'user_name' => (string) $row->getAttribute('user_name'),
+                    'quantity' => $row->quantity,
+                    'address' => $address,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     /**

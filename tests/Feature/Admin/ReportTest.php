@@ -80,6 +80,67 @@ test('the selling products report can be filtered by product type', function () 
             ->where('filters.type', Product::STATUS_READY));
 });
 
+test('the packing report lists product lines from orders that still need packing', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create(['name' => 'Ash Ketchum']);
+
+    $processing = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PROCESSING,
+        'receiver_name' => 'Ash Ketchum',
+        'shipping_address' => '123 Card Lane',
+        'shipping_city' => 'Makati',
+    ]);
+    $processing->items()->create([
+        'product_name' => 'Charizard EX',
+        'quantity' => 2,
+        'unit_price' => '50',
+        'subtotal' => '100',
+    ]);
+
+    foreach ([Order::STATUS_PENDING, Order::STATUS_COMPLETED, Order::STATUS_CANCELLED] as $status) {
+        $excluded = Order::factory()->create([
+            'customer_id' => $customer->id,
+            'status' => $status,
+        ]);
+        $excluded->items()->create([
+            'product_name' => 'Excluded Card',
+            'quantity' => 1,
+            'unit_price' => '10',
+            'subtotal' => '10',
+        ]);
+    }
+
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/reports/packing')
+            ->has('rows', 1)
+            ->where('rows.0.product_name', 'Charizard EX')
+            ->where('rows.0.order_date', now()->format('d/m/Y'))
+            ->where('rows.0.user_name', 'Ash Ketchum')
+            ->where('rows.0.quantity', 2)
+            ->where('rows.0.address', 'Ash Ketchum, 123 Card Lane, Makati'));
+
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing', ['search' => 'charizard']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('rows', 1));
+
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing', ['search' => 'no-such-card']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('rows', 0));
+
+    $response = $this->actingAs($admin)
+        ->get(route('admin.reports.packing.export'))
+        ->assertOk();
+
+    expect($response->headers->get('content-type'))->toContain('spreadsheetml');
+    expect($response->headers->get('content-disposition'))->toContain('.xlsx');
+});
+
 test('the customer order report lists one row per product line', function () {
     $admin = User::factory()->asAdmin()->create();
     $customer = User::factory()->create(['name' => 'Ash Ketchum']);
