@@ -193,7 +193,7 @@ test('a product can be created with a down payment and youtube link', function (
 
     expect((float) $product->down_payment)->toBe(25.0);
     expect($product->youtube_link)->toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-    expect($product->youtubeEmbedUrl())->toBe('https://www.youtube.com/embed/dQw4w9WgXcQ');
+    expect($product->youtubeEmbedUrl())->toBe('https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0');
 });
 
 test('an empty down payment defaults to zero', function () {

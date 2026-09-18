@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -74,6 +75,39 @@ class OrdersController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => __('shop.order_notes_updated'),
+        ]);
+
+        return back();
+    }
+
+    /**
+     * Update the payment status of a customer's order.
+     *
+     * Customers may only change it while the order is still open (not
+     * cancelled or completed).
+     */
+    public function updatePayment(Request $request, Order $order): RedirectResponse
+    {
+        abort_if($order->customer_id !== auth()->id(), 403);
+
+        if (in_array($order->status, [Order::STATUS_CANCELLED, Order::STATUS_COMPLETED], true)) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => __('shop.order_payment_locked'),
+            ]);
+
+            return back();
+        }
+
+        $validated = $request->validate([
+            'payment_status' => ['required', Rule::in(Order::PAYMENT_STATUSES)],
+        ]);
+
+        $order->update(['payment_status' => $validated['payment_status']]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('shop.order_payment_updated'),
         ]);
 
         return back();

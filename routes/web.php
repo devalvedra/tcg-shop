@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
     Route::delete('orders/{order}', [OrdersController::class, 'cancel'])->name('orders.cancel');
     Route::put('orders/{order}/notes', [OrdersController::class, 'updateNotes'])->name('orders.notes');
+    Route::put('orders/{order}/payment', [OrdersController::class, 'updatePayment'])->name('orders.payment');
     Route::get('orders/{order}/invoice', [OrdersController::class, 'invoice'])->name('orders.invoice');
     Route::get('orders/{order}/confirmation', [CheckoutController::class, 'confirmation'])->name('orders.confirmation');
 

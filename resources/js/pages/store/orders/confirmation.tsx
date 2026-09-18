@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
 import { catalog } from '@/routes';
-import type { Order } from '@/types';
 import orders from '@/routes/orders';
+import type { Order } from '@/types';
 
 type Props = {
     order: Order;

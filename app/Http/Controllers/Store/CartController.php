@@ -72,6 +72,25 @@ class CartController extends Controller
         }
 
         if (in_array($product->status, [Product::STATUS_READY, Product::STATUS_PRE_ORDER], true)) {
+            $statuses = $cart->items()
+                ->map(fn (array $item): string => $item['product']->status)
+                ->intersect([Product::STATUS_READY, Product::STATUS_PRE_ORDER])
+                ->unique()
+                ->values();
+
+            if ($statuses->isNotEmpty() && ! $statuses->contains($product->status)) {
+                Inertia::flash('toast', [
+                    'type' => 'error',
+                    'message' => $product->status === Product::STATUS_PRE_ORDER
+                        ? __('shop.cart_cannot_mix_preorder')
+                        : __('shop.cart_cannot_mix_ready'),
+                ]);
+
+                return back();
+            }
+        }
+
+        if (in_array($product->status, [Product::STATUS_READY, Product::STATUS_PRE_ORDER], true)) {
             $stock = $cart->quantity($product->id) + $quantity;
 
             if ($stock > $product->stock) {

@@ -224,6 +224,54 @@ test('a pre-order quantity update beyond stock is rejected', function () {
     $this->assertSame(1, session('cart.items.'.$product->id));
 });
 
+test('a ready product cannot be added when the cart has pre-order items', function () {
+    $preOrder = Product::factory()->preOrder()->create(['stock' => 5]);
+    $ready = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'stock' => 5,
+    ]);
+    session(['cart.items' => [$preOrder->id => 1]]);
+
+    $this->post(route('cart.store', $ready), ['quantity' => 1])
+        ->assertRedirect();
+
+    $this->assertNull(session('cart.items.'.$ready->id));
+    $this->assertSame(1, session('cart.items.'.$preOrder->id));
+});
+
+test('a pre-order product cannot be added when the cart has ready items', function () {
+    $ready = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'stock' => 5,
+    ]);
+    $preOrder = Product::factory()->preOrder()->create(['stock' => 5]);
+    session(['cart.items' => [$ready->id => 1]]);
+
+    $this->post(route('cart.store', $preOrder), ['quantity' => 1])
+        ->assertRedirect();
+
+    $this->assertNull(session('cart.items.'.$preOrder->id));
+    $this->assertSame(1, session('cart.items.'.$ready->id));
+});
+
+test('products of the same type can share a cart', function () {
+    $first = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'stock' => 5,
+    ]);
+    $second = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'stock' => 5,
+    ]);
+    session(['cart.items' => [$first->id => 1]]);
+
+    $this->post(route('cart.store', $second), ['quantity' => 1])
+        ->assertRedirect();
+
+    $this->assertSame(1, session('cart.items.'.$first->id));
+    $this->assertSame(1, session('cart.items.'.$second->id));
+});
+
 test('removing a cart item removes it from the session', function () {
     $product = Product::factory()->preOrder()->create();
     session(['cart.items' => [$product->id => 1]]);

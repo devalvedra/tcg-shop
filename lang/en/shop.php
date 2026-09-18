@@ -56,6 +56,8 @@ return [
     'cart_quantities_adjusted' => 'Item quantities were adjusted to match the available stock.',
     'cart_product_unavailable' => 'This product is currently unavailable.',
     'cart_preorder_not_open' => 'This product is not available for pre-order right now.',
+    'cart_cannot_mix_preorder' => 'Pre-order products cannot share a cart with ready items. Please check out your ready items first.',
+    'cart_cannot_mix_ready' => 'Ready products cannot share a cart with pre-order items. Please check out your pre-order items first.',
     'cart_only_preorder_units' => 'Only :count units are available for pre-order.',
     'cart_only_left_in_stock' => 'Only :count left in stock.',
     'cart_down_payment_too_high' => 'The down payment must be lower than the item subtotal of :amount.',
@@ -69,6 +71,8 @@ return [
 
     'order_only_pending_cancel' => 'Only pending orders can be cancelled.',
     'order_cannot_cancel' => 'This order can no longer be cancelled.',
+    'order_payment_locked' => 'The payment status of this order can no longer be changed.',
+    'order_payment_updated' => 'Payment status updated.',
     'order_notes_updated' => 'Order notes updated.',
     'order_cancelled' => 'Order cancelled.',
     'order_updated' => 'Order updated.',

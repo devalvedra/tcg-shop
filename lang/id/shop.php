@@ -56,6 +56,8 @@ return [
     'cart_quantities_adjusted' => 'Jumlah item telah disesuaikan dengan stok yang tersedia.',
     'cart_product_unavailable' => 'Produk ini sedang tidak tersedia.',
     'cart_preorder_not_open' => 'Produk ini belum tersedia untuk pre-order saat ini.',
+    'cart_cannot_mix_preorder' => 'Produk pre-order tidak dapat digabung dengan produk ready dalam satu keranjang. Selesaikan dulu pesanan produk ready Anda.',
+    'cart_cannot_mix_ready' => 'Produk ready tidak dapat digabung dengan produk pre-order dalam satu keranjang. Selesaikan dulu pesanan pre-order Anda.',
     'cart_only_preorder_units' => 'Hanya tersedia :count unit untuk pre-order.',
     'cart_only_left_in_stock' => 'Sisa stok hanya :count.',
     'cart_down_payment_too_high' => 'Uang muka harus lebih rendah dari subtotal item sebesar :amount.',
@@ -69,6 +71,8 @@ return [
 
     'order_only_pending_cancel' => 'Hanya pesanan dengan status menunggu yang dapat dibatalkan.',
     'order_cannot_cancel' => 'Pesanan ini sudah tidak dapat dibatalkan.',
+    'order_payment_locked' => 'Status pembayaran pesanan ini sudah tidak dapat diubah.',
+    'order_payment_updated' => 'Status pembayaran berhasil diperbarui.',
     'order_notes_updated' => 'Catatan pesanan berhasil diperbarui.',
     'order_cancelled' => 'Pesanan berhasil dibatalkan.',
     'order_updated' => 'Pesanan berhasil diperbarui.',

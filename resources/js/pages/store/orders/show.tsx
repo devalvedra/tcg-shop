@@ -1,4 +1,4 @@
-import { Form, Head, Link, useForm } from '@inertiajs/react';
+import { Form, Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
     Check,
@@ -20,6 +20,7 @@ import {
     index as ordersIndex,
     invoice as invoiceRoute,
     notes as notesRoute,
+    payment as paymentRoute,
 } from '@/routes/orders';
 import type { Order, OrderStatus, PaymentStatus } from '@/types';
 
@@ -108,6 +109,21 @@ export default function ShowOrder({
         notesForm.put(notesRoute.url({ order: order.id }), {
             preserveScroll: true,
         });
+    };
+
+    const canChangePayment =
+        order.status !== 'cancelled' && order.status !== 'completed';
+
+    const changePayment = (paymentStatus: PaymentStatus) => {
+        if (paymentStatus === order.payment_status) {
+            return;
+        }
+
+        router.put(
+            paymentRoute.url({ order: order.id }),
+            { payment_status: paymentStatus },
+            { preserveScroll: true },
+        );
     };
 
     return (
@@ -395,15 +411,40 @@ export default function ShowOrder({
                                     <span className="text-muted-foreground">
                                         {t('Payment')}
                                     </span>
-                                    <span
-                                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${paymentStyles[order.payment_status]}`}
-                                    >
-                                        {t(
-                                            paymentStatuses[
-                                                order.payment_status
-                                            ] ?? order.payment_status,
-                                        )}
-                                    </span>
+                                    {canChangePayment ? (
+                                        <select
+                                            value={order.payment_status}
+                                            onChange={(e) =>
+                                                changePayment(
+                                                    e.target
+                                                        .value as PaymentStatus,
+                                                )
+                                            }
+                                            className="h-8 max-w-40 rounded-md border border-input bg-background px-2 text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                            aria-label={t('Payment')}
+                                        >
+                                            {Object.entries(
+                                                paymentStatuses,
+                                            ).map(([value, label]) => (
+                                                <option
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {t(label)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <span
+                                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${paymentStyles[order.payment_status]}`}
+                                        >
+                                            {t(
+                                                paymentStatuses[
+                                                    order.payment_status
+                                                ] ?? order.payment_status,
+                                            )}
+                                        </span>
+                                    )}
                                 </div>
                                 {order.promo_code && (
                                     <div className="flex items-center justify-between">

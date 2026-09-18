@@ -191,6 +191,78 @@ test('order cancellation can be disabled in the settings', function () {
     expect($order->fresh()->status)->toBe(Order::STATUS_PENDING);
 });
 
+test('a customer can update the payment status of an open order', function () {
+    $customer = User::factory()->create();
+    $order = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PENDING,
+        'payment_status' => Order::PAYMENT_STATUS_UNPAID,
+    ]);
+
+    $this->actingAs($customer)
+        ->put(route('orders.payment', $order), [
+            'payment_status' => Order::PAYMENT_STATUS_DP,
+        ])
+        ->assertRedirect();
+
+    expect($order->fresh()->payment_status)->toBe(Order::PAYMENT_STATUS_DP);
+});
+
+test('the payment status cannot be changed on a cancelled or completed order', function () {
+    $customer = User::factory()->create();
+
+    foreach ([Order::STATUS_CANCELLED, Order::STATUS_COMPLETED] as $status) {
+        $order = Order::factory()->create([
+            'customer_id' => $customer->id,
+            'status' => $status,
+            'payment_status' => Order::PAYMENT_STATUS_UNPAID,
+        ]);
+
+        $this->actingAs($customer)
+            ->put(route('orders.payment', $order), [
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
+            ])
+            ->assertRedirect();
+
+        expect($order->fresh()->payment_status)->toBe(Order::PAYMENT_STATUS_UNPAID);
+    }
+});
+
+test('an invalid payment status is rejected', function () {
+    $customer = User::factory()->create();
+    $order = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PENDING,
+        'payment_status' => Order::PAYMENT_STATUS_UNPAID,
+    ]);
+
+    $this->actingAs($customer)
+        ->put(route('orders.payment', $order), [
+            'payment_status' => 'not-a-status',
+        ])
+        ->assertSessionHasErrors('payment_status');
+
+    expect($order->fresh()->payment_status)->toBe(Order::PAYMENT_STATUS_UNPAID);
+});
+
+test('a customer cannot change another customers payment status', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+    $order = Order::factory()->create([
+        'customer_id' => $owner->id,
+        'status' => Order::STATUS_PENDING,
+        'payment_status' => Order::PAYMENT_STATUS_UNPAID,
+    ]);
+
+    $this->actingAs($other)
+        ->put(route('orders.payment', $order), [
+            'payment_status' => Order::PAYMENT_STATUS_PAID,
+        ])
+        ->assertForbidden();
+
+    expect($order->fresh()->payment_status)->toBe(Order::PAYMENT_STATUS_UNPAID);
+});
+
 test('a customer can update their order notes', function () {
     $customer = User::factory()->create();
     $order = Order::factory()->create(['customer_id' => $customer->id]);
