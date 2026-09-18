@@ -32,7 +32,7 @@ export default function Login({ status, canResetPassword }: Props) {
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="phone">
-                                    {t('Phone number')}
+                                    {t('WhatsApp number')}
                                 </Label>
                                 <Input
                                     id="phone"
