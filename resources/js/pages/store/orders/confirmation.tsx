@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
 import { catalog } from '@/routes';
 import type { Order } from '@/types';
+import orders from '@/routes/orders';
 
 type Props = {
     order: Order;
@@ -217,9 +218,14 @@ export default function OrderConfirmation({
                     </Card>
                 )}
 
-                <div className="mt-8 flex justify-center">
+                <div className="mt-8 flex justify-center gap-8">
                     <Button asChild>
                         <Link href={catalog()}>{t('Continue shopping')}</Link>
+                    </Button>
+                    <Button asChild variant={'outline'}>
+                        <Link href={orders.show(order.id)}>
+                            {t('Continue to payment')}
+                        </Link>
                     </Button>
                 </div>
 

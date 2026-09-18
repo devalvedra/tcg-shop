@@ -393,7 +393,7 @@ export default function ShowOrder({
                                 )}
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">
-                                        {t('Status')}
+                                        {t('Payment')}
                                     </span>
                                     <span
                                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${paymentStyles[order.payment_status]}`}

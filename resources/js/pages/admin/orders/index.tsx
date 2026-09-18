@@ -153,22 +153,6 @@ export default function OrdersIndex({
                                     className="lg:max-w-40"
                                 />
                                 <select
-                                    name="status"
-                                    defaultValue={filters.status}
-                                    className={nativeSelectClasses}
-                                >
-                                    <option value="">
-                                        {t('All statuses')}
-                                    </option>
-                                    {Object.entries(statuses).map(
-                                        ([value, label]) => (
-                                            <option key={value} value={value}>
-                                                {t(label)}
-                                            </option>
-                                        ),
-                                    )}
-                                </select>
-                                <select
                                     name="payment_status"
                                     defaultValue={filters.payment_status}
                                     className={nativeSelectClasses}
@@ -178,6 +162,22 @@ export default function OrdersIndex({
                                         {t('All payments')}
                                     </option>
                                     {Object.entries(paymentStatuses).map(
+                                        ([value, label]) => (
+                                            <option key={value} value={value}>
+                                                {t(label)}
+                                            </option>
+                                        ),
+                                    )}
+                                </select>
+                                <select
+                                    name="status"
+                                    defaultValue={filters.status}
+                                    className={nativeSelectClasses}
+                                >
+                                    <option value="">
+                                        {t('All statuses')}
+                                    </option>
+                                    {Object.entries(statuses).map(
                                         ([value, label]) => (
                                             <option key={value} value={value}>
                                                 {t(label)}
