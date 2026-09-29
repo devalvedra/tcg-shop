@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -41,6 +42,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            // Send visitors to the storefront home page when no route
+            // matches. Requests that matched a route but aborted (for
+            // example an unavailable product) keep the regular 404 page.
+            if ($request->expectsJson() || $request->route() !== null) {
+                return null;
+            }
+
+            return redirect()->route('home');
+        });
 
         $exceptions->render(function (PostTooLargeException $e, Request $request) {
             $message = 'The uploaded files are too large. Please reduce the total size and try again.';

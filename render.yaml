@@ -22,6 +22,12 @@ services:
     plan: free
     healthCheckPath: /up
     autoDeploy: true
+    # Persistent disk so uploaded images survive redeploys/restarts.
+    # Requires a paid instance type (Starter or higher).
+    disk:
+      name: uploads
+      mountPath: /var/www/html/storage/app/public
+      sizeGB: 1
     envVars:
       - key: APP_ENV
         value: production

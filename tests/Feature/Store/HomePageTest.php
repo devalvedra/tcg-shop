@@ -43,3 +43,7 @@ test('unavailable products are not shown on the home page', function () {
             ->where('featuredProducts', [])
             ->where('preOrderProducts', []));
 });
+
+test('an unrecognized url redirects to the home page', function () {
+    $this->get('/this-page-does-not-exist')->assertRedirect(route('home'));
+});
