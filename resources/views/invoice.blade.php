@@ -119,9 +119,9 @@
             @foreach ($order->items as $item)
                 <tr>
                     <td>{{ $item->product_name }}</td>
-                    <td class="num">{{ number_format((float) $item->unit_price, 2) }}</td>
+                    <td class="num">{{ $money((float) $item->unit_price) }}</td>
                     <td class="num">{{ $item->quantity }}</td>
-                    <td class="num">{{ number_format((float) $item->subtotal, 2) }}</td>
+                    <td class="num">{{ $money((float) $item->subtotal) }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -130,21 +130,21 @@
     <table class="totals">
         <tr>
             <td class="muted">{{ __('Subtotal') }}</td>
-            <td class="num">{{ number_format((float) $order->subtotal, 2) }}</td>
+            <td class="num">{{ $money((float) $order->subtotal) }}</td>
         </tr>
         @if ((float) $order->discount > 0)
             <tr>
                 <td class="muted">{{ __('Discount') }}</td>
-                <td class="num">-{{ number_format((float) $order->discount, 2) }}</td>
+                <td class="num">-{{ $money((float) $order->discount) }}</td>
             </tr>
         @endif
         <tr>
             <td class="muted">{{ __('Shipping') }}</td>
-            <td class="num">{{ number_format((float) $order->shipping_fee, 2) }}</td>
+            <td class="num">{{ $money((float) $order->shipping_fee) }}</td>
         </tr>
         <tr class="grand">
             <td>{{ __('Total') }}</td>
-            <td class="num">{{ number_format((float) $order->total, 2) }}</td>
+            <td class="num">{{ $money((float) $order->total) }}</td>
         </tr>
     </table>
 

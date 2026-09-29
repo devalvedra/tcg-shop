@@ -289,3 +289,13 @@ test('an invalid order status is rejected', function () {
         'status' => $order->status,
     ]);
 });
+
+test('an admin can download any order invoice', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $order = Order::factory()->withItems(1)->create();
+
+    $this->actingAs($admin)
+        ->get(route('orders.invoice', $order))
+        ->assertOk()
+        ->assertDownload("invoice-{$order->order_number}.pdf");
+});

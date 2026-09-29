@@ -1,5 +1,12 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { ArrowLeft, CreditCard, MapPin, Package, User } from 'lucide-react';
+import {
+    ArrowLeft,
+    CreditCard,
+    MapPin,
+    Package,
+    Printer,
+    User,
+} from 'lucide-react';
 import OrderController from '@/actions/App/Http/Controllers/Admin/OrderController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
 import { index as ordersIndex } from '@/routes/admin/orders';
+import { invoice as invoiceRoute } from '@/routes/orders';
 import type { Order, OrderStatus, PaymentStatus } from '@/types';
 
 type Props = {
@@ -76,9 +84,17 @@ export default function ShowOrder({
                             })}
                         </p>
                     </div>
-                    <p className="text-2xl font-semibold tracking-tight">
-                        {formatCurrency(order.total)}
-                    </p>
+                    <div className="flex flex-col items-start gap-2 sm:items-end">
+                        <Button asChild variant="outline" size="sm">
+                            <a href={invoiceRoute.url({ order: order.id })}>
+                                <Printer className="size-4" />
+                                {t('Print invoice')}
+                            </a>
+                        </Button>
+                        <p className="text-2xl font-semibold tracking-tight">
+                            {formatCurrency(order.total)}
+                        </p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

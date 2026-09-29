@@ -127,6 +127,8 @@ class OrdersController extends Controller
         $locale = $settings['locale'] ?? config('app.locale', 'en');
         app()->setLocale(in_array($locale, ['en', 'id'], true) ? $locale : 'en');
 
+        $currency = $settings['currency'] ?? 'usd';
+
         $pdf = Pdf::loadView('invoice', [
             'order' => $order,
             'paymentMethod' => $this->paymentMethodDetails($order),
@@ -137,9 +139,22 @@ class OrdersController extends Controller
                 'phone' => $settings['store_phone'] ?? null,
                 'address' => $settings['store_address'] ?? null,
             ],
+            'money' => fn (float $amount): string => $this->formatMoney($amount, $currency),
         ]);
 
         return $pdf->download("invoice-{$order->order_number}.pdf");
+    }
+
+    /**
+     * Format an amount like the storefront currency.
+     */
+    private function formatMoney(float $amount, string $currency): string
+    {
+        if ($currency === 'idr') {
+            return 'Rp'.number_format($amount, 0, ',', '.');
+        }
+
+        return '$'.number_format($amount, 2, '.', ',');
     }
 
     /**
