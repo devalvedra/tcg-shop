@@ -23,7 +23,7 @@ class SettingsController extends Controller
 
         return Inertia::render('admin/settings/index', [
             'settings' => [
-                'store_name' => $settings['store_name'] ?? '',
+                'store_name' => $settings['store_name'] ?? config('app.name'),
                 'store_email' => $settings['store_email'] ?? null,
                 'store_phone' => $settings['store_phone'] ?? null,
                 'store_address' => $settings['store_address'] ?? null,

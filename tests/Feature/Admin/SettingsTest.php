@@ -198,34 +198,8 @@ test('settings validation rejects invalid values', function () {
 
     $this->actingAs($admin)
         ->put(route('admin.settings.update'), [
-            'store_name' => 'Card Haven',
+            'store_name' => '',
             'shipping_fee' => '-5',
         ])
-        ->assertSessionHasErrors(['shipping_fee']);
-});
-
-test('the store name is optional and falls back for display', function () {
-    $admin = User::factory()->asAdmin()->create();
-
-    $this->actingAs($admin)
-        ->put(route('admin.settings.update'), [
-            'store_name' => '',
-            'shipping_fee' => '5.00',
-            'free_shipping_threshold' => '100.00',
-            'locale' => 'en',
-            'currency' => 'usd',
-        ])
-        ->assertRedirect();
-
-    $this->assertDatabaseHas('settings', [
-        'key' => 'store_name',
-        'value' => null,
-    ]);
-
-    $this->actingAs($admin)
-        ->get(route('admin.settings.index'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('name', null)
-            ->where('settings.store_name', ''));
+        ->assertSessionHasErrors(['store_name', 'shipping_fee']);
 });

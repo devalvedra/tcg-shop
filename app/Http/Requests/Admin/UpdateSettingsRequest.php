@@ -24,7 +24,7 @@ class UpdateSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'store_name' => ['nullable', 'string', 'max:255'],
+            'store_name' => ['required', 'string', 'max:255'],
             'store_email' => ['nullable', 'email', 'max:255'],
             'store_phone' => ['nullable', 'string', 'max:50'],
             'store_address' => ['nullable', 'string', 'max:500'],

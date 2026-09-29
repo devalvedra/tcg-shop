@@ -31,7 +31,7 @@ export default function StoreIndex({
 }: Props) {
     return (
         <>
-            <Head title={t('TCG Shop')} />
+            <Head title={t('Home')} />
 
             <StoreBannerCarousel banners={banners} />
 
