@@ -606,7 +606,7 @@
     "All payments": "Semua pembayaran",
     "Invoice": "Faktur",
     "Billed to": "Ditagihkan kepada",
-    "Account Name (Facebook, Whatsapp, or Other Social Media)": "Nama Akun (Facebook, Whatsapp, atau Media Sosial Lainnya)",
+    "Account Name (Facebook, Whatsapp, or Other Social Media)": "Nama Facebook",
     "You have paid DP {amount}": "Anda telah membayar DP {amount}",
     "You have paid DP: {paid}, please pay the remaining payment of: {remaining}": "Anda telah membayar DP: {paid}, silakan bayar sisa pembayaran sebesar: {remaining}",
     "Watch on YouTube": "Tonton di YouTube",
@@ -621,5 +621,7 @@
     "Next image": "Gambar berikutnya",
     "No categories yet": "Belum ada kategori",
     "Product categories will appear here once they are added.": "Kategori produk akan muncul di sini setelah ditambahkan.",
-    "No featured products yet": "Belum ada produk unggulan"
+    "No featured products yet": "Belum ada produk unggulan",
+    "Create new account": "Buat akun baru",
+    "Complete the form below to register new account": "Lengkapi formulir di bawah ini untuk mendaftar akun baru"
 }

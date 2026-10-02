@@ -24,7 +24,11 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">{t('Name')}</Label>
+                                <Label htmlFor="name">
+                                    {t(
+                                        'Account Name (Facebook, Whatsapp, or Other Social Media)',
+                                    )}
+                                </Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -33,14 +37,13 @@ export default function Register() {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="name"
-                                    placeholder={t('Full name')}
                                 />
                                 <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="phone">
-                                    {t('Phone number')}
+                                    {t('WhatsApp number')}
                                 </Label>
                                 <Input
                                     id="phone"
@@ -49,7 +52,6 @@ export default function Register() {
                                     required
                                     tabIndex={2}
                                     autoComplete="tel"
-                                    placeholder={t('0917 123 4567')}
                                     inputMode="tel"
                                 />
                                 <InputError message={errors.phone} />
@@ -68,7 +70,6 @@ export default function Register() {
                                     name="email"
                                     tabIndex={3}
                                     autoComplete="email"
-                                    placeholder={t('you@example.com')}
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -83,7 +84,6 @@ export default function Register() {
                                     required
                                     tabIndex={4}
                                     autoComplete="new-password"
-                                    placeholder={t('Password')}
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -98,7 +98,6 @@ export default function Register() {
                                     required
                                     tabIndex={5}
                                     autoComplete="new-password"
-                                    placeholder={t('Confirm password')}
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
@@ -128,6 +127,6 @@ export default function Register() {
 }
 
 Register.layout = {
-    title: t('Create your account'),
-    description: t('Sign up to start collecting from our shop'),
+    title: t('Create new account'),
+    description: t('Complete the form below to register new account'),
 };

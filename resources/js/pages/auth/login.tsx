@@ -42,7 +42,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="tel"
-                                    placeholder={t('0917 123 4567')}
                                     inputMode="tel"
                                 />
                                 <InputError message={errors.phone} />
@@ -69,7 +68,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder={t('Password')}
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -99,7 +97,7 @@ export default function Login({ status, canResetPassword }: Props) {
                         <div className="space-x-1 text-center text-sm text-muted-foreground">
                             <span>{t("Don't have an account?")}</span>
                             <TextLink href={register()}>
-                                {t('Create one')}
+                                {t('Create new account')}
                             </TextLink>
                         </div>
                     </>
