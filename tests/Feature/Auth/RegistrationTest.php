@@ -13,8 +13,8 @@ test('customers can register and are redirected to the storefront', function () 
         'name' => 'Avery Chen',
         'phone' => '09171234567',
         'email' => 'avery@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
     ]);
 
     $response->assertRedirect(route('home'));
@@ -33,8 +33,8 @@ test('customers can register without an email', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Avery Chen',
         'phone' => '09171234567',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
     ]);
 
     $response->assertRedirect(route('home'));
@@ -47,8 +47,8 @@ test('new customers wait for verification when it is required', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Avery Chen',
         'phone' => '09171234567',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
     ]);
 
     $response->assertRedirect(route('register.pending'));
@@ -72,8 +72,8 @@ test('new customers are verified when verification is disabled', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Avery Chen',
         'phone' => '09171234567',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
     ]);
 
     $response->assertRedirect(route('home'));
@@ -96,9 +96,25 @@ test('registration requires a confirmed password', function () {
     $this->post(route('register.store'), [
         'name' => 'Avery Chen',
         'phone' => '09171234567',
-        'password' => 'password',
+        'password' => 'Passw0rd!',
         'password_confirmation' => 'not-matching',
     ])->assertSessionHasErrors('password');
+});
+
+test('registration rejects a weak password with a single message', function () {
+    $response = $this->post(route('register.store'), [
+        'name' => 'Avery Chen',
+        'phone' => '09171234567',
+        'password' => 'weakpass',
+        'password_confirmation' => 'weakpass',
+    ]);
+
+    $response->assertSessionHasErrors('password');
+
+    expect(session('errors')->get('password'))->toHaveCount(1);
+
+    $this->assertDatabaseMissing('users', ['phone' => '09171234567']);
+    $this->assertGuest();
 });
 
 test('registration phone and email must be unique', function () {
@@ -108,7 +124,7 @@ test('registration phone and email must be unique', function () {
         'name' => 'Avery Chen',
         'phone' => '09171234567',
         'email' => 'avery@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
     ])->assertSessionHasErrors(['phone', 'email']);
 });

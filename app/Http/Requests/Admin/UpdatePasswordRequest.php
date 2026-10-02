@@ -1,14 +1,22 @@
 <?php
 
-namespace App\Http\Requests\Settings;
+namespace App\Http\Requests\Admin;
 
 use App\Concerns\PasswordValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class PasswordUpdateRequest extends FormRequest
+class UpdatePasswordRequest extends FormRequest
 {
     use PasswordValidationRules;
+
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return $this->user()?->isAdmin() ?? false;
+    }
 
     /**
      * Get the validation rules that apply to the request.

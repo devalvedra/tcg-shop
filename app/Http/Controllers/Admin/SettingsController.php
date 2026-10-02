@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdatePasswordRequest;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\Order;
 use App\Models\ShopSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -39,6 +41,7 @@ class SettingsController extends Controller
                 'locale' => $settings['locale'] ?? config('app.locale', 'en'),
                 'currency' => $settings['currency'] ?? 'usd',
             ],
+            'passwordRules' => Password::defaults()->toPasswordRulesString(),
         ]);
     }
 
@@ -66,6 +69,20 @@ class SettingsController extends Controller
         ShopSetting::setMany($values);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.settings_updated')]);
+
+        return back();
+    }
+
+    /**
+     * Update the administrator's password.
+     */
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
+    {
+        $request->user()->update([
+            'password' => $request->password,
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.password_updated')]);
 
         return back();
     }

@@ -21,6 +21,7 @@ return [
     'customer_deleted' => 'Customer deleted.',
     'customer_status_updated' => 'Customer verification status updated.',
     'account_pending_verification' => 'Your account was created. An admin must verify it before you can log in.',
+    'password_requirements' => 'The password must be at least 8 characters and include uppercase and lowercase letters, numbers, and symbols.',
 
     'payment_method_created' => 'Payment method created.',
     'payment_method_updated' => 'Payment method updated.',

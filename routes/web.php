@@ -142,6 +142,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('settings', [SettingsController::class, 'index'])->name('admin.settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+        Route::put('settings/password', [SettingsController::class, 'updatePassword'])->name('admin.settings.password');
     });
 });
 

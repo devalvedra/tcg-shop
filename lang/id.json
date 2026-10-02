@@ -619,9 +619,11 @@
     "Order date": "Tanggal pesanan",
     "Previous image": "Gambar sebelumnya",
     "Next image": "Gambar berikutnya",
+    "At least 8 characters with uppercase, lowercase, numbers, and symbols.": "Minimal 8 karakter dengan huruf besar, huruf kecil, angka, dan simbol.",
     "No categories yet": "Belum ada kategori",
     "Product categories will appear here once they are added.": "Kategori produk akan muncul di sini setelah ditambahkan.",
     "No featured products yet": "Belum ada produk unggulan",
     "Create new account": "Buat akun baru",
-    "Complete the form below to register new account": "Lengkapi formulir di bawah ini untuk mendaftar akun baru"
+    "Complete the form below to register new account": "Lengkapi formulir di bawah ini untuk mendaftar akun baru",
+    "Update the password for your administrator account": "Perbarui kata sandi untuk akun administrator Anda"
 }

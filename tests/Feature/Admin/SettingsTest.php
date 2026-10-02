@@ -3,6 +3,7 @@
 use App\Models\ShopSetting;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -202,4 +203,64 @@ test('settings validation rejects invalid values', function () {
             'shipping_fee' => '-5',
         ])
         ->assertSessionHasErrors(['store_name', 'shipping_fee']);
+});
+
+test('an admin can update their password', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->from(route('admin.settings.index'))
+        ->put(route('admin.settings.password'), [
+            'current_password' => 'password',
+            'password' => 'Admin123!',
+            'password_confirmation' => 'Admin123!',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.settings.index'));
+
+    expect(Hash::check('Admin123!', $admin->refresh()->password))->toBeTrue();
+});
+
+test('an admin password must meet the strong password rules with a single message', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $response = $this->actingAs($admin)
+        ->from(route('admin.settings.index'))
+        ->put(route('admin.settings.password'), [
+            'current_password' => 'password',
+            'password' => 'weakpass',
+            'password_confirmation' => 'weakpass',
+        ]);
+
+    $response->assertSessionHasErrors('password');
+
+    expect(session('errors')->get('password'))->toHaveCount(1);
+    expect(Hash::check('password', $admin->refresh()->password))->toBeTrue();
+});
+
+test('an admin password change requires the current password', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->from(route('admin.settings.index'))
+        ->put(route('admin.settings.password'), [
+            'current_password' => 'wrong-password',
+            'password' => 'Admin123!',
+            'password_confirmation' => 'Admin123!',
+        ])
+        ->assertSessionHasErrors('current_password');
+
+    expect(Hash::check('password', $admin->refresh()->password))->toBeTrue();
+});
+
+test('customers cannot change the admin password', function () {
+    $customer = User::factory()->create();
+
+    $this->actingAs($customer)
+        ->put(route('admin.settings.password'), [
+            'current_password' => 'password',
+            'password' => 'Admin123!',
+            'password_confirmation' => 'Admin123!',
+        ])
+        ->assertRedirect();
 });

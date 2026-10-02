@@ -9,6 +9,7 @@ import {
 import { useRef, useState } from 'react';
 import SettingsController from '@/actions/App/Http/Controllers/Admin/SettingsController';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -41,6 +42,7 @@ type Props = {
         locale: string;
         currency: string;
     };
+    passwordRules: string;
 };
 
 const nativeSelectClasses =
@@ -56,7 +58,7 @@ const currencyOptions = [
     { value: 'idr', label: 'Rupiah (Rp)' },
 ];
 
-export default function AdminSettings({ settings }: Props) {
+export default function AdminSettings({ settings, passwordRules }: Props) {
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(
         settings.store_logo_url ?? null,
@@ -574,6 +576,94 @@ export default function AdminSettings({ settings }: Props) {
                         </>
                     )}
                 </Form>
+
+                <Card className="gap-0 py-5">
+                    <CardHeader className="px-5 py-0">
+                        <CardTitle>{t('Change password')}</CardTitle>
+                        <CardDescription>
+                            {t(
+                                'Update the password for your administrator account',
+                            )}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="px-5 pt-6">
+                        <Form
+                            {...SettingsController.updatePassword.form()}
+                            options={{
+                                preserveScroll: true,
+                            }}
+                            resetOnSuccess={[
+                                'password',
+                                'password_confirmation',
+                                'current_password',
+                            ]}
+                            className="grid gap-6"
+                        >
+                            {({ errors, processing: passwordProcessing }) => (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="current_password">
+                                            {t('Current password')}
+                                        </Label>
+                                        <PasswordInput
+                                            id="current_password"
+                                            name="current_password"
+                                            className="mt-1 block w-full"
+                                            autoComplete="current-password"
+                                            placeholder={t('Current password')}
+                                        />
+                                        <InputError
+                                            message={errors.current_password}
+                                        />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="password">
+                                            {t('New password')}
+                                        </Label>
+                                        <PasswordInput
+                                            id="password"
+                                            name="password"
+                                            className="mt-1 block w-full"
+                                            autoComplete="new-password"
+                                            placeholder={t('New password')}
+                                            passwordrules={passwordRules}
+                                        />
+                                        <InputError message={errors.password} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="password_confirmation">
+                                            {t('Confirm password')}
+                                        </Label>
+                                        <PasswordInput
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            className="mt-1 block w-full"
+                                            autoComplete="new-password"
+                                            placeholder={t('Confirm password')}
+                                            passwordrules={passwordRules}
+                                        />
+                                        <InputError
+                                            message={
+                                                errors.password_confirmation
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-4">
+                                        <Button
+                                            disabled={passwordProcessing}
+                                            data-test="update-password-button"
+                                        >
+                                            {t('Save changes')}
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </Form>
+                    </CardContent>
+                </Card>
             </div>
         </>
     );

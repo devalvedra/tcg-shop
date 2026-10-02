@@ -21,6 +21,7 @@ return [
     'customer_deleted' => 'Pelanggan berhasil dihapus.',
     'customer_status_updated' => 'Status verifikasi pelanggan berhasil diperbarui.',
     'account_pending_verification' => 'Akun Anda berhasil dibuat. Admin harus memverifikasi akun sebelum Anda dapat masuk.',
+    'password_requirements' => 'Kata sandi harus minimal 8 karakter dan mencakup huruf besar dan kecil, angka, dan simbol.',
 
     'payment_method_created' => 'Metode pembayaran berhasil dibuat.',
     'payment_method_updated' => 'Metode pembayaran berhasil diperbarui.',
