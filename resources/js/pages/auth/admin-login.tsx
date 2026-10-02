@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -7,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import AuthLayout from '@/layouts/auth-layout';
 import { t } from '@/lib/i18n';
 import { login } from '@/routes';
 import { store } from '@/routes/admin/login';
@@ -90,9 +92,13 @@ export default function AdminLogin() {
     );
 }
 
-AdminLogin.layout = {
-    title: t('Admin access'),
-    description: t(
-        'Enter your administrator username and password below to log in',
-    ),
-};
+AdminLogin.layout = (page: ReactNode) => (
+    <AuthLayout
+        title={t('Admin access')}
+        description={t(
+            'Enter your administrator username and password below to log in',
+        )}
+    >
+        {page}
+    </AuthLayout>
+);

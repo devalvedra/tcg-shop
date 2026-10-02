@@ -36,9 +36,11 @@ export default function AuthSimpleLayout({
                             <AppLogoIcon className="size-7 fill-current text-white" />
                         </div>
                     )}
-                    <span className="text-lg font-semibold tracking-tight">
-                        {name}
-                    </span>
+                    {!logo && (
+                        <span className="text-lg font-semibold tracking-tight">
+                            {name}
+                        </span>
+                    )}
                 </Link>
 
                 <div className="relative z-10 max-w-md">
