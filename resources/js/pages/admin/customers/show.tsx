@@ -1,6 +1,7 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
+    BadgeCheck,
     MapPin,
     Pencil,
     Star,
@@ -15,6 +16,7 @@ import { t } from '@/lib/i18n';
 import {
     edit as editCustomer,
     index as customersIndex,
+    status as updateCustomerStatus,
 } from '@/routes/admin/customers';
 import { show as showOrder } from '@/routes/admin/orders';
 import type { Address, OrderStatus, User } from '@/types';
@@ -57,6 +59,22 @@ export default function ShowCustomer({
     statuses,
     customerStatuses,
 }: Props) {
+    const verifyCustomer = () => {
+        const confirmed = window.confirm(
+            t('Mark {name} as verified?', { name: customer.name }),
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        router.patch(
+            updateCustomerStatus.url({ customer: customer.id }),
+            { status: 'verified' },
+            { preserveScroll: true },
+        );
+    };
+
     return (
         <>
             <Head title={customer.name} />
@@ -102,7 +120,18 @@ export default function ShowCustomer({
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {customer.status !== 'verified' && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                onClick={verifyCustomer}
+                            >
+                                <BadgeCheck className="size-4" />
+                                {t('Verify')}
+                            </Button>
+                        )}
                         <Button asChild variant="outline">
                             <Link
                                 href={editCustomer({
