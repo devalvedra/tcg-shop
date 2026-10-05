@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/i18n';
 import type { Banner } from '@/types';
@@ -12,6 +12,7 @@ export function StoreBannerCarousel({ banners }: Props) {
     const [current, setCurrent] = useState(0);
 
     const count = banners.length;
+    const touchStart = useRef<{ x: number; y: number } | null>(null);
 
     const goTo = useCallback(
         (index: number) => setCurrent((index + count) % count),
@@ -28,7 +29,7 @@ export function StoreBannerCarousel({ banners }: Props) {
         }, 6000);
 
         return () => window.clearInterval(timer);
-    }, [count]);
+    }, [count, current]);
 
     if (count === 0) {
         return null;
@@ -63,7 +64,43 @@ export function StoreBannerCarousel({ banners }: Props) {
     );
 
     return (
-        <section className="relative w-full overflow-hidden">
+        <section
+            className="relative w-full touch-pan-y overflow-hidden"
+            onTouchStart={(event) => {
+                const touch = event.touches[0];
+
+                if (touch) {
+                    touchStart.current = {
+                        x: touch.clientX,
+                        y: touch.clientY,
+                    };
+                }
+            }}
+            onTouchEnd={(event) => {
+                const start = touchStart.current;
+                touchStart.current = null;
+
+                if (!start || count <= 1) {
+                    return;
+                }
+
+                const touch = event.changedTouches[0];
+
+                if (!touch) {
+                    return;
+                }
+
+                const dx = touch.clientX - start.x;
+                const dy = touch.clientY - start.y;
+
+                if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                    goTo(current + (dx < 0 ? 1 : -1));
+                }
+            }}
+            onTouchCancel={() => {
+                touchStart.current = null;
+            }}
+        >
             <div
                 className="transition-transform duration-500"
                 style={{ transform: `translateX(-${current * 100}%)` }}
