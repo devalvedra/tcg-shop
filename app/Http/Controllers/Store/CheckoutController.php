@@ -136,7 +136,7 @@ class CheckoutController extends Controller
                     'subtotal' => $item['subtotal'],
                 ]);
 
-                if ($product->status === Product::STATUS_READY) {
+                if (in_array($product->status, Product::STOCK_MANAGED_STATUSES, true)) {
                     $product->decrement('stock', $item['quantity']);
                 }
             }

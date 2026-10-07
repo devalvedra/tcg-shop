@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -176,12 +175,20 @@ class Order extends Model
     }
 
     /**
-     * Generate a random order number that is not already in use.
+     * Use the order number (not the id) in route URLs.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'order_number';
+    }
+
+    /**
+     * Generate a unique order number like G-20261031-1430AB.
      */
     protected static function generateOrderNumber(): string
     {
         do {
-            $orderNumber = 'ORD-'.Str::upper(Str::random(12));
+            $orderNumber = 'G-'.now()->format('Ymd-Hi').substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 2);
         } while (static::query()->where('order_number', $orderNumber)->exists());
 
         return $orderNumber;

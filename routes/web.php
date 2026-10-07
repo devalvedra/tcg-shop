@@ -54,12 +54,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('orders', [OrdersController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
-    Route::delete('orders/{order}', [OrdersController::class, 'cancel'])->name('orders.cancel');
-    Route::put('orders/{order}/notes', [OrdersController::class, 'updateNotes'])->name('orders.notes');
-    Route::put('orders/{order}/payment', [OrdersController::class, 'updatePayment'])->name('orders.payment');
-    Route::get('orders/{order}/invoice', [OrdersController::class, 'invoice'])->name('orders.invoice');
-    Route::get('orders/{order}/confirmation', [CheckoutController::class, 'confirmation'])->name('orders.confirmation');
+    Route::get('orders/{order:order_number}', [OrdersController::class, 'show'])->name('orders.show');
+    Route::delete('orders/{order:order_number}', [OrdersController::class, 'cancel'])->name('orders.cancel');
+    Route::put('orders/{order:order_number}/notes', [OrdersController::class, 'updateNotes'])->name('orders.notes');
+    Route::put('orders/{order:order_number}/payment', [OrdersController::class, 'updatePayment'])->name('orders.payment');
+    Route::get('orders/{order:order_number}/invoice', [OrdersController::class, 'invoice'])->name('orders.invoice');
+    Route::get('orders/{order:order_number}/confirmation', [CheckoutController::class, 'confirmation'])->name('orders.confirmation');
 
     Route::get('regions/cities/{province}', [RegionController::class, 'cities'])->name('regions.cities');
     Route::get('regions/districts/{city}', [RegionController::class, 'districts'])->name('regions.districts');
@@ -114,8 +114,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('orders', [OrderController::class, 'index'])->name('admin.orders.index');
         Route::get('orders/export', [OrderController::class, 'export'])->name('admin.orders.export');
-        Route::get('orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-        Route::put('orders/{order}', [OrderController::class, 'update'])->name('admin.orders.update');
+        Route::get('orders/{order:order_number}', [OrderController::class, 'show'])->name('admin.orders.show');
+        Route::put('orders/{order:order_number}', [OrderController::class, 'update'])->name('admin.orders.update');
 
         Route::get('customers', [CustomerController::class, 'index'])->name('admin.customers.index');
         Route::get('customers/create', [CustomerController::class, 'create'])->name('admin.customers.create');

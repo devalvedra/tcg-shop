@@ -216,6 +216,26 @@ test('an empty down payment defaults to zero', function () {
     ]);
 });
 
+test('a product description keeps its rich text formatting', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.products.store'), [
+            'name' => 'Formatted Card',
+            'description' => '<p>Near mint with <strong>holo</strong> finish.</p><ul><li>Set: 151</li></ul>',
+            'category' => 'singles',
+            'price' => '10.00',
+            'stock' => 1,
+            'status' => Product::STATUS_READY,
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('products', [
+        'name' => 'Formatted Card',
+        'description' => '<p>Near mint with <strong>holo</strong> finish.</p><ul><li>Set: 151</li></ul>',
+    ]);
+});
+
 test('product images larger than two megabytes are rejected', function () {
     Storage::fake('public');
 

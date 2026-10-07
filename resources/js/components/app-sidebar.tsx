@@ -120,7 +120,7 @@ const reportsNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props;
+    const { auth, version } = usePage().props;
     const isAdmin = auth.user?.role === 'admin';
 
     return (
@@ -156,6 +156,9 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavUser />
+                <p className="px-2 pt-1 text-center text-[10px] text-muted-foreground group-data-[collapsible=icon]:hidden">
+                    v{version}
+                </p>
             </SidebarFooter>
         </Sidebar>
     );

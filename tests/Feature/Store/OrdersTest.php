@@ -134,6 +134,29 @@ test('a customer can cancel their pending order and restock the items', function
     expect($product->fresh()->stock)->toBe(7);
 });
 
+test('cancelling an order restocks pre-order items as well', function () {
+    $customer = User::factory()->create();
+    $product = Product::factory()->preOrder()->create(['stock' => 6]);
+    $order = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PENDING,
+    ]);
+    $order->items()->create([
+        'product_id' => $product->id,
+        'product_name' => $product->name,
+        'unit_price' => '50.00',
+        'quantity' => 2,
+        'subtotal' => '100.00',
+    ]);
+
+    $this->actingAs($customer)
+        ->delete(route('orders.cancel', $order))
+        ->assertRedirect();
+
+    expect($order->fresh()->status)->toBe(Order::STATUS_CANCELLED);
+    expect($product->fresh()->stock)->toBe(8);
+});
+
 test('only pending orders can be cancelled', function () {
     $customer = User::factory()->create();
     $order = Order::factory()->create([

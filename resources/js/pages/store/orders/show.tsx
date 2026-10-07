@@ -106,7 +106,7 @@ export default function ShowOrder({
 
     const saveNotes = (event: React.FormEvent) => {
         event.preventDefault();
-        notesForm.put(notesRoute.url({ order: order.id }), {
+        notesForm.put(notesRoute.url({ order: order.order_number }), {
             preserveScroll: true,
         });
     };
@@ -120,7 +120,7 @@ export default function ShowOrder({
         }
 
         router.put(
-            paymentRoute.url({ order: order.id }),
+            paymentRoute.url({ order: order.order_number }),
             { payment_status: paymentStatus },
             { preserveScroll: true },
         );
@@ -169,7 +169,11 @@ export default function ShowOrder({
                             size="sm"
                             className="w-full sm:w-auto"
                         >
-                            <a href={invoiceRoute.url({ order: order.id })}>
+                            <a
+                                href={invoiceRoute.url({
+                                    order: order.order_number,
+                                })}
+                            >
                                 <Download className="size-4" />
                                 {t('Download invoice')}
                             </a>
@@ -193,7 +197,7 @@ export default function ShowOrder({
                         )}
                         {cancelOrder.canCancel && (
                             <Form
-                                {...cancel.form({ order: order.id })}
+                                {...cancel.form({ order: order.order_number })}
                                 className="w-full sm:w-auto"
                                 onSubmit={(e) => {
                                     if (

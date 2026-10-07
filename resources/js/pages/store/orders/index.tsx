@@ -167,7 +167,7 @@ export default function MyOrders({
                                     <Button asChild variant="outline" size="sm">
                                         <Link
                                             href={showOrder({
-                                                order: order.id,
+                                                order: order.order_number,
                                             })}
                                         >
                                             {t('View')}

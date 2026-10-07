@@ -10,11 +10,12 @@ import {
     Plus,
     ShoppingCart,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { categoryIconMap, ProductCard } from '@/components/store/product-card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
+import { safeHtml } from '@/lib/safe-html';
 import { catalog, login } from '@/routes';
 import { store as cartStore } from '@/routes/cart';
 import { show as showProduct } from '@/routes/products';
@@ -67,6 +68,7 @@ export default function ShowProduct({
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [adding, setAdding] = useState(false);
+    const touchStartX = useRef<number | null>(null);
 
     const images = product.images.filter((image) => image.url);
     const mainImage = images[selectedImage]?.url;
@@ -135,12 +137,34 @@ export default function ShowProduct({
 
                 <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div>
-                        <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
+                        <div
+                            className="relative -mx-4 flex aspect-square items-center justify-center overflow-hidden border-0 bg-gradient-to-br from-indigo-100 to-violet-100 md:mx-0 md:rounded-2xl md:border dark:from-indigo-950/50 dark:to-violet-950/50"
+                            onTouchStart={(event) => {
+                                touchStartX.current =
+                                    event.touches[0]?.clientX ?? null;
+                            }}
+                            onTouchEnd={(event) => {
+                                const startX = touchStartX.current;
+                                touchStartX.current = null;
+
+                                if (startX === null) {
+                                    return;
+                                }
+
+                                const endX =
+                                    event.changedTouches[0]?.clientX ?? startX;
+                                const dx = endX - startX;
+
+                                if (Math.abs(dx) > 40) {
+                                    slideImage(dx < 0 ? 1 : -1);
+                                }
+                            }}
+                        >
                             {mainImage ? (
                                 <img
                                     src={mainImage}
                                     alt={product.name}
-                                    className="size-full object-cover"
+                                    className="size-full object-contain"
                                 />
                             ) : (
                                 <div className="flex size-24 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
@@ -154,7 +178,7 @@ export default function ShowProduct({
                                         type="button"
                                         onClick={() => slideImage(-1)}
                                         aria-label={t('Previous image')}
-                                        className="absolute top-1/2 left-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/80 text-foreground shadow-sm backdrop-blur transition hover:bg-background"
+                                        className="absolute top-1/2 left-2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/80 text-foreground shadow-sm backdrop-blur transition hover:bg-background md:flex"
                                     >
                                         <ChevronLeft className="size-4" />
                                     </button>
@@ -162,7 +186,7 @@ export default function ShowProduct({
                                         type="button"
                                         onClick={() => slideImage(1)}
                                         aria-label={t('Next image')}
-                                        className="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/80 text-foreground shadow-sm backdrop-blur transition hover:bg-background"
+                                        className="absolute top-1/2 right-2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/80 text-foreground shadow-sm backdrop-blur transition hover:bg-background md:flex"
                                     >
                                         <ChevronRight className="size-4" />
                                     </button>
@@ -189,7 +213,7 @@ export default function ShowProduct({
                                                 name: product.name,
                                                 index: index + 1,
                                             })}
-                                            className="size-full object-cover"
+                                            className="size-full object-contain"
                                         />
                                     </button>
                                 ))}
@@ -219,7 +243,7 @@ export default function ShowProduct({
 
                         {isAuthenticated && (
                             <div className="flex flex-col gap-1">
-                                <span className="text-4xl font-bold tracking-tight tabular-nums">
+                                <span className="text-2xl font-bold tracking-tight tabular-nums sm:text-4xl">
                                     {formatCurrency(price)}
                                 </span>
                                 {isPreOrder && (
@@ -303,21 +327,6 @@ export default function ShowProduct({
                                 </span>
                             )}
                         </div>
-
-                        {youtubeEmbedUrl && (
-                            <div className="lg:hidden">
-                                <ProductVideo
-                                    url={youtubeEmbedUrl}
-                                    title={product.name}
-                                />
-                            </div>
-                        )}
-
-                        {product.description && (
-                            <p className="text-sm leading-relaxed text-muted-foreground">
-                                {product.description}
-                            </p>
-                        )}
 
                         <div className="flex flex-col gap-3 border-t pt-5">
                             {hasDownPayment && (
@@ -426,6 +435,24 @@ export default function ShowProduct({
                                         )}
                             </p>
                         </div>
+
+                        {youtubeEmbedUrl && (
+                            <div className="lg:hidden">
+                                <ProductVideo
+                                    url={youtubeEmbedUrl}
+                                    title={product.name}
+                                />
+                            </div>
+                        )}
+
+                        {product.description && (
+                            <div
+                                className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+                                dangerouslySetInnerHTML={{
+                                    __html: safeHtml(product.description),
+                                }}
+                            />
+                        )}
                     </div>
                 </div>
 

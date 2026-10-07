@@ -55,10 +55,12 @@ class Product extends Model
         $slug = $base;
         $i = 2;
 
-        while (Product::query()
-            ->where('slug', $slug)
-            ->when($this->exists, fn ($query) => $query->whereKeyNot($this->id))
-            ->exists()) {
+        while (
+            Product::query()
+                ->where('slug', $slug)
+                ->when($this->exists, fn($query) => $query->whereKeyNot($this->id))
+                ->exists()
+        ) {
             $slug = "{$base}-{$i}";
             $i++;
         }
@@ -71,6 +73,17 @@ class Product extends Model
     public const string STATUS_PRE_ORDER = 'pre-order';
 
     public const string STATUS_UNAVAILABLE = 'unavailable';
+
+    /**
+     * Product statuses whose stock is decremented on checkout and restored
+     * when the order is cancelled.
+     *
+     * @var array<int, string>
+     */
+    public const array STOCK_MANAGED_STATUSES = [
+        self::STATUS_READY,
+        self::STATUS_PRE_ORDER,
+    ];
 
     /**
      * @var array<string, string>
@@ -150,11 +163,11 @@ class Product extends Model
 
         $parts = parse_url($link);
 
-        if ($parts === false || ! isset($parts['host'])) {
-            $parts = parse_url('https://'.$link);
+        if ($parts === false || !isset($parts['host'])) {
+            $parts = parse_url('https://' . $link);
         }
 
-        if ($parts === false || ! isset($parts['host'])) {
+        if ($parts === false || !isset($parts['host'])) {
             return null;
         }
 
@@ -168,9 +181,9 @@ class Product extends Model
             parse_str((string) ($parts['query'] ?? ''), $query);
             $id = $query['v'] ?? null;
 
-            if (! is_string($id) || $id === '') {
+            if (!is_string($id) || $id === '') {
                 foreach (['embed', 'shorts', 'live', 'v'] as $prefix) {
-                    if (str_starts_with($path, $prefix.'/')) {
+                    if (str_starts_with($path, $prefix . '/')) {
                         $id = substr($path, strlen($prefix) + 1);
                         break;
                     }
@@ -178,7 +191,7 @@ class Product extends Model
             }
         }
 
-        if (! is_string($id) || $id === '') {
+        if (!is_string($id) || $id === '') {
             return null;
         }
 
@@ -201,7 +214,7 @@ class Product extends Model
      */
     public function isPreOrderWindowOpen(?Carbon $now = null): bool
     {
-        if ($this->status !== self::STATUS_PRE_ORDER || ! $this->open_po_date || ! $this->close_po_date) {
+        if ($this->status !== self::STATUS_PRE_ORDER || !$this->open_po_date || !$this->close_po_date) {
             return false;
         }
 

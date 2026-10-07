@@ -199,6 +199,7 @@ test('an invalid promo in the session is ignored at checkout', function () {
 });
 
 test('the order detail shows the promo code used', function () {
+
     $user = User::factory()->create();
     $promo = PromoCode::factory()->percent(10)->create(['code' => 'SUMMER10']);
     $order = Order::factory()->create([
@@ -213,4 +214,40 @@ test('the order detail shows the promo code used', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('store/orders/show')
             ->where('order.promo_code.code', 'SUMMER10'));
+});
+
+test('the grand total combines subtotal, shipping, and promo discount', function () {
+    $user = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $user->id]);
+    PromoCode::factory()->fixed(10)->create(['code' => 'SAVE10']);
+    $product = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'price' => '50.00',
+        'stock' => 5,
+    ]);
+    session(['cart.items' => [$product->id => 1]]);
+    session(['cart.promo' => 'SAVE10']);
+
+    $this->actingAs($user)
+        ->get(route('checkout.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('subtotal', 50)
+            ->where('shippingFee', 5)
+            ->where('discount', 10)
+            ->where('total', 45));
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'address_id' => $address->id,
+            'payment_method' => 'cod',
+        ])
+        ->assertRedirect();
+
+    $order = Order::where('customer_id', $user->id)->firstOrFail();
+
+    $this->assertSame('50.00', $order->subtotal);
+    $this->assertSame('5.00', $order->shipping_fee);
+    $this->assertSame('10.00', $order->discount);
+    $this->assertSame('45.00', $order->total);
 });

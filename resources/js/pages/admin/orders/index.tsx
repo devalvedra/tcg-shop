@@ -79,7 +79,7 @@ export default function OrdersIndex({
 
     const changeStatus = (order: Order, status: OrderStatus) => {
         router.put(
-            updateOrder.url({ order: order.id }),
+            updateOrder.url({ order: order.order_number }),
             { status },
             { preserveScroll: true },
         );
@@ -90,7 +90,7 @@ export default function OrdersIndex({
         paymentStatus: PaymentStatus,
     ) => {
         router.put(
-            updateOrder.url({ order: order.id }),
+            updateOrder.url({ order: order.order_number }),
             { payment_status: paymentStatus },
             { preserveScroll: true },
         );
@@ -286,7 +286,7 @@ export default function OrdersIndex({
                                                 <td className="px-4 py-3">
                                                     <Link
                                                         href={showOrder({
-                                                            order: order.id,
+                                                            order: order.order_number,
                                                         })}
                                                         className="font-medium text-foreground hover:underline"
                                                     >
@@ -419,7 +419,7 @@ export default function OrdersIndex({
                                                             <Link
                                                                 href={showOrder(
                                                                     {
-                                                                        order: order.id,
+                                                                        order: order.order_number,
                                                                     },
                                                                 )}
                                                             >

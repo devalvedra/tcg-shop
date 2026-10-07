@@ -40,8 +40,6 @@ class OrderSeeder extends Seeder
         foreach ($demoOrders as $demo) {
             $order = Order::create([
                 'customer_id' => $customer->id,
-                'order_number' => 'ORD-'.now()->format('Ymd').'-'
-                    .str_pad((string) ((int) Order::max('id') + 1), 5, '0', STR_PAD_LEFT),
                 'status' => $demo['status'],
                 'payment_method' => $demo['payment_method'],
                 'payment_status' => $demo['payment_status'],

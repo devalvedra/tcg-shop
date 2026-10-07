@@ -626,5 +626,15 @@
     "No featured products yet": "Belum ada produk unggulan",
     "Create new account": "Buat akun baru",
     "Complete the form below to register new account": "Lengkapi formulir di bawah ini untuk mendaftar akun baru",
-    "Update the password for your administrator account": "Perbarui kata sandi untuk akun administrator Anda"
+    "Update the password for your administrator account": "Perbarui kata sandi untuk akun administrator Anda",
+    "Bold": "Tebal",
+    "Italic": "Miring",
+    "Strikethrough": "Coret",
+    "Heading": "Judul",
+    "Bullet list": "Daftar poin",
+    "Numbered list": "Daftar bernomor",
+    "Quote": "Kutipan",
+    "Undo": "Urungkan",
+    "Redo": "Ulangi",
+    "Clear formatting": "Hapus format"
 }

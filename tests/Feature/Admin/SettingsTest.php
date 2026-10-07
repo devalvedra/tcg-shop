@@ -40,7 +40,8 @@ test('an admin can view the settings page', function () {
             ->where('settings.shipping_fee', '5.00')
             ->where('settings.free_shipping_threshold', '100.00')
             ->where('settings.locale', 'en')
-            ->where('settings.currency', 'usd'));
+            ->where('settings.currency', 'usd')
+            ->where('version', config('app.version')));
 });
 
 test('an admin can update the settings', function () {
@@ -55,6 +56,7 @@ test('an admin can update the settings', function () {
             'whatsapp_number' => '+639170000001',
             'shipping_fee' => '7.50',
             'free_shipping_threshold' => '150.00',
+            'general_description' => '<p>Every card is <strong>near mint</strong>.</p>',
             'locale' => 'id',
             'currency' => 'idr',
         ])
@@ -71,6 +73,10 @@ test('an admin can update the settings', function () {
     $this->assertDatabaseHas('settings', [
         'key' => 'shipping_fee',
         'value' => '7.50',
+    ]);
+    $this->assertDatabaseHas('settings', [
+        'key' => 'general_description',
+        'value' => '<p>Every card is <strong>near mint</strong>.</p>',
     ]);
     $this->assertDatabaseHas('settings', [
         'key' => 'locale',

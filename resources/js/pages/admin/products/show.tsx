@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
+import { safeHtml } from '@/lib/safe-html';
 import {
     edit as editProduct,
     index as productsIndex,
@@ -317,10 +318,20 @@ export default function ShowProduct({ product, categories, statuses }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    {product.description ??
-                                        t('No description.')}
-                                </p>
+                                {product.description ? (
+                                    <div
+                                        className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+                                        dangerouslySetInnerHTML={{
+                                            __html: safeHtml(
+                                                product.description,
+                                            ),
+                                        }}
+                                    />
+                                ) : (
+                                    <p className="text-sm leading-relaxed text-muted-foreground">
+                                        {t('No description.')}
+                                    </p>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

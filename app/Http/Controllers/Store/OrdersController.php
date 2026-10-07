@@ -203,7 +203,7 @@ class OrdersController extends Controller
             foreach ($order->items as $item) {
                 $product = $item->product;
 
-                if ($product && $product->status === Product::STATUS_READY) {
+                if ($product && in_array($product->status, Product::STOCK_MANAGED_STATUSES, true)) {
                     $product->increment('stock', $item->quantity);
                 }
             }

@@ -223,7 +223,7 @@ export default function OrderConfirmation({
                         <Link href={catalog()}>{t('Continue shopping')}</Link>
                     </Button>
                     <Button asChild variant={'outline'}>
-                        <Link href={orders.show(order.id)}>
+                        <Link href={orders.show(order.order_number)}>
                             {t('Continue to payment')}
                         </Link>
                     </Button>

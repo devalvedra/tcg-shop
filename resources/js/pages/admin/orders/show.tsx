@@ -86,7 +86,11 @@ export default function ShowOrder({
                     </div>
                     <div className="flex flex-col items-start gap-2 sm:items-end">
                         <Button asChild variant="outline" size="sm">
-                            <a href={invoiceRoute.url({ order: order.id })}>
+                            <a
+                                href={invoiceRoute.url({
+                                    order: order.order_number,
+                                })}
+                            >
                                 <Printer className="size-4" />
                                 {t('Print invoice')}
                             </a>
@@ -253,7 +257,7 @@ export default function ShowOrder({
                             <CardContent className="flex flex-col gap-4">
                                 <Form
                                     {...OrderController.update.form({
-                                        order: order.id,
+                                        order: order.order_number,
                                     })}
                                     className="flex flex-col gap-4"
                                 >

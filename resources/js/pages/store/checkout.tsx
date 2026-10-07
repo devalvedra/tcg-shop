@@ -153,13 +153,13 @@ export default function Checkout({
         form.post(checkoutStore.url(), { preserveScroll: true });
     };
 
-    const applyPromoCode = (event: React.FormEvent) => {
-        event.preventDefault();
+    const applyPromoCode = () => {
         promoForm.post(applyPromo.url(), { preserveScroll: true });
     };
 
     const removeAppliedPromo = () => {
         router.delete(removePromo.url(), { preserveScroll: true });
+        promoForm.setData('code', '');
     };
 
     return (
@@ -418,7 +418,7 @@ export default function Checkout({
                                         return (
                                             <div
                                                 key={item.product.id}
-                                                className="flex items-center gap-3"
+                                                className="flex items-start gap-3"
                                             >
                                                 <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
                                                     {image ? (
@@ -563,7 +563,7 @@ export default function Checkout({
                                             </Button>
                                         </div>
                                     ) : (
-                                        <form onSubmit={applyPromoCode}>
+                                        <div>
                                             <Label htmlFor="promo_code">
                                                 {t('Promo code')}
                                             </Label>
@@ -578,15 +578,21 @@ export default function Checkout({
                                                             e.target.value.toUpperCase(),
                                                         )
                                                     }
-                                                    placeholder="SUMMER10"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            applyPromoCode();
+                                                        }
+                                                    }}
                                                     className="font-mono uppercase"
                                                 />
                                                 <Button
-                                                    type="submit"
+                                                    type="button"
                                                     variant="outline"
                                                     disabled={
                                                         promoForm.processing
                                                     }
+                                                    onClick={applyPromoCode}
                                                 >
                                                     {t('Apply')}
                                                 </Button>
@@ -594,7 +600,7 @@ export default function Checkout({
                                             <InputError
                                                 message={promoForm.errors.code}
                                             />
-                                        </form>
+                                        </div>
                                     )}
                                 </div>
 

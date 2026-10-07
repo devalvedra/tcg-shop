@@ -280,7 +280,29 @@ test('a pre-order product is charged its full price with the product down paymen
         'subtotal' => '299.98',
     ]);
 
-    $this->assertSame(10, $product->fresh()->stock);
+    $this->assertSame(8, $product->fresh()->stock);
+});
+
+test('checkout reduces stock for ready and pre-order products', function () {
+    $user = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $user->id]);
+    $ready = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'stock' => 5,
+    ]);
+    $preOrder = Product::factory()->preOrder()->create(['stock' => 4]);
+    session(['cart.items' => [$ready->id => 1, $preOrder->id => 1]]);
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'address_id' => $address->id,
+            'payment_method' => 'cod',
+        ])
+        ->assertRedirect();
+
+    expect(Order::where('customer_id', $user->id)->count())->toBe(1);
+    $this->assertSame(4, $ready->fresh()->stock);
+    $this->assertSame(3, $preOrder->fresh()->stock);
 });
 
 test('a pre-order product outside its pre-order window is rejected at checkout', function () {
@@ -320,4 +342,47 @@ test('the checkout page exposes the total down payment', function () {
             ->where('cartItems.0.down_payment', 50)
             ->where('downPayment', 50)
             ->where('total', 149.99));
+});
+
+test('admin shipping settings are reflected on the cart, checkout, and product pages', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->put(route('admin.settings.update'), [
+            'store_name' => 'Probe Shop',
+            'shipping_fee' => '25.00',
+            'free_shipping_threshold' => '500.00',
+            'locale' => 'en',
+            'currency' => 'usd',
+        ])
+        ->assertRedirect();
+
+    $user = User::factory()->create();
+    $product = Product::factory()->create([
+        'status' => Product::STATUS_READY,
+        'price' => '100.00',
+        'stock' => 5,
+    ]);
+    session(['cart.items' => [$product->id => 1]]);
+
+    $this->actingAs($user)
+        ->get(route('cart.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('shippingFee', 25)
+            ->where('total', 125)
+            ->where('freeShippingThreshold', 500));
+
+    $this->actingAs($user)
+        ->get(route('checkout.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('shippingFee', 25)
+            ->where('total', 125));
+
+    $this->actingAs($user)
+        ->get(route('products.show', ['product' => $product->slug]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('freeShippingThreshold', 500));
 });

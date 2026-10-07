@@ -59,6 +59,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => ShopSetting::get('store_name') ?? config('app.name'),
+            'version' => config('app.version'),
             'logo' => $this->logoUrl(),
             'locale' => $locale,
             'translations' => fn () => $this->translations($locale),

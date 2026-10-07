@@ -279,7 +279,7 @@ export default function ShowCustomer({
                                         <Link
                                             key={order.id}
                                             href={showOrder({
-                                                order: order.id,
+                                                order: order.order_number,
                                             })}
                                             className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/50"
                                         >

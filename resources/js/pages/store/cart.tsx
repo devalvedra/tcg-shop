@@ -205,9 +205,9 @@ export default function Cart({
                                     return (
                                         <div
                                             key={item.product.id}
-                                            className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4"
+                                            className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4"
                                         >
-                                            <div className="flex min-w-0 flex-1 items-center gap-4">
+                                            <div className="flex min-w-0 flex-1 items-start gap-4">
                                                 <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-950/50 dark:to-violet-950/50">
                                                     {image ? (
                                                         <img
@@ -230,7 +230,7 @@ export default function Cart({
                                                                 item.product
                                                                     .slug,
                                                         })}
-                                                        className="truncate font-medium hover:underline"
+                                                        className="font-medium break-words hover:underline"
                                                     >
                                                         {item.product.name}
                                                     </Link>

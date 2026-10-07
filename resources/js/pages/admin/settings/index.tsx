@@ -10,6 +10,7 @@ import { useRef, useState } from 'react';
 import SettingsController from '@/actions/App/Http/Controllers/Admin/SettingsController';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { RichTextEditor } from '@/components/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -64,6 +65,9 @@ export default function AdminSettings({ settings, passwordRules }: Props) {
         settings.store_logo_url ?? null,
     );
     const [logoRemoved, setLogoRemoved] = useState(false);
+    const [generalDescription, setGeneralDescription] = useState(
+        settings.general_description ?? '',
+    );
 
     const currentLogo = logoRemoved ? null : logoPreview;
 
@@ -410,17 +414,15 @@ export default function AdminSettings({ settings, passwordRules }: Props) {
                                         <Label htmlFor="general_description">
                                             {t('General description')}
                                         </Label>
-                                        <Textarea
+                                        <RichTextEditor
                                             id="general_description"
+                                            value={generalDescription}
+                                            onChange={setGeneralDescription}
+                                        />
+                                        <input
+                                            type="hidden"
                                             name="general_description"
-                                            defaultValue={
-                                                settings.general_description ??
-                                                ''
-                                            }
-                                            rows={5}
-                                            placeholder={t(
-                                                'The default description used for new products.',
-                                            )}
+                                            value={generalDescription}
                                         />
                                         <InputError
                                             message={errors.general_description}

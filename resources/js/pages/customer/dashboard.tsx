@@ -147,7 +147,7 @@ export default function CustomerDashboard({
                                         >
                                             <Link
                                                 href={showOrder({
-                                                    order: order.id,
+                                                    order: order.order_number,
                                                 })}
                                             >
                                                 {t('View')}

@@ -235,7 +235,7 @@ export default function CustomerOrdersReport({ rows, filters }: Props) {
                                                             <Link
                                                                 href={showOrder(
                                                                     {
-                                                                        order: row.order_id,
+                                                                        order: row.order_number,
                                                                     },
                                                                 )}
                                                                 className="font-mono text-xs text-indigo-600 hover:underline"

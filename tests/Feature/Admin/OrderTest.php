@@ -34,15 +34,24 @@ test('orders can be listed by an admin', function () {
             ->where('orders.total', 3));
 });
 
-test('orders receive a unique random order number', function () {
+test('orders receive a unique order number', function () {
     $admin = User::factory()->asAdmin()->create();
     $orders = Order::factory()->count(20)->create();
 
     foreach ($orders as $order) {
-        $this->assertMatchesRegularExpression('/^ORD-[A-Z0-9]{12}$/', $order->order_number);
+        $this->assertMatchesRegularExpression('/^G-\d{8}-\d{4}[A-Z]{2}$/', $order->order_number);
     }
 
     $this->assertSame(20, $orders->pluck('order_number')->unique()->count());
+});
+
+test('order detail pages resolve by order number', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $order = Order::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.orders.show', $order->order_number))
+        ->assertOk();
 });
 
 test('the order list includes the down payment and payment status', function () {
@@ -168,7 +177,8 @@ test('orders can be filtered by customer name', function () {
     $admin = User::factory()->asAdmin()->create();
     $customer = User::factory()->create(['name' => 'Ash Ketchum']);
     $order = Order::factory()->create(['customer_id' => $customer->id]);
-    Order::factory()->create();
+    $other = User::factory()->create(['name' => 'Bob Builder']);
+    Order::factory()->create(['customer_id' => $other->id]);
 
     $this->actingAs($admin)
         ->get(route('admin.orders.index', ['customer' => 'ash']))

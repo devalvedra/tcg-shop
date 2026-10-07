@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { ImagePlus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
+import { RichTextEditor } from '@/components/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { currencySymbol } from '@/lib/currency';
 import { t } from '@/lib/i18n';
 import {
@@ -525,14 +525,12 @@ export function ProductForm({
                                 {t('General Description')}
                             </Button>
                         </div>
-                        <Textarea
+                        <RichTextEditor
                             id="description"
-                            name="description"
                             value={form.data.description}
-                            onChange={(e) =>
-                                form.setData('description', e.target.value)
+                            onChange={(html) =>
+                                form.setData('description', html)
                             }
-                            className="mt-1 min-h-28"
                         />
                         <InputError message={form.errors.description} />
                     </div>
