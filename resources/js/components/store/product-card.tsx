@@ -1,11 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Box, Gift, Package, ShoppingBag, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
 import { t } from '@/lib/i18n';
-import type { Product } from '@/types';
+import type { Auth, Product } from '@/types';
 import type { RouteDefinition } from '@/wayfinder';
 
 export const categoryIconMap: Record<string, LucideIcon> = {
@@ -23,6 +23,8 @@ export function ProductCard({
     product: Product;
     href?: string | RouteDefinition<'get'>;
 }) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const isAuthenticated = Boolean(auth?.user);
     const Icon = categoryIconMap[product.category] ?? Package;
     const image = product.images[0]?.url;
     const price = product.sell_price ?? product.price;
@@ -52,16 +54,18 @@ export function ProductCard({
                     {product.category_name}
                 </p>
                 <p className="truncate font-medium">{product.name}</p>
-                <div className="mt-1 flex flex-col gap-0.5">
-                    <span className="text-lg font-semibold">
-                        {formatCurrency(price)}
-                    </span>
-                    {product.status === 'pre-order' && (
-                        <span className="text-[10px] font-medium tracking-wide text-amber-600 uppercase dark:text-amber-400">
-                            {t('Pre-order')}
+                {isAuthenticated && (
+                    <div className="mt-1 flex flex-col gap-0.5">
+                        <span className="text-lg font-semibold">
+                            {formatCurrency(price)}
                         </span>
-                    )}
-                </div>
+                        {product.status === 'pre-order' && (
+                            <span className="text-[10px] font-medium tracking-wide text-amber-600 uppercase dark:text-amber-400">
+                                {t('Pre-order')}
+                            </span>
+                        )}
+                    </div>
+                )}
                 <p className="mt-auto text-xs text-muted-foreground">
                     {product.stock === 0
                         ? t('Out of stock')
