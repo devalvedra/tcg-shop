@@ -189,7 +189,6 @@ export default function ProductsIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Price')}
@@ -197,7 +196,6 @@ export default function ProductsIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Stock')}
@@ -205,7 +203,6 @@ export default function ProductsIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Status')}
@@ -213,7 +210,6 @@ export default function ProductsIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
@@ -227,7 +223,7 @@ export default function ProductsIndex({
                                                 className="hover:bg-muted/50"
                                             >
                                                 <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-start gap-3 md:items-center">
                                                         {product.images[0]
                                                             ?.url ? (
                                                             <img
@@ -261,12 +257,12 @@ export default function ProductsIndex({
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {categories[
                                                         product.category
                                                     ] ?? product.category}
                                                 </td>
-                                                <td className="hidden px-4 py-3 lg:table-cell">
+                                                <td className="px-4 py-3">
                                                     {product.sell_price
                                                         ? formatCurrency(
                                                               product.sell_price,
@@ -275,7 +271,7 @@ export default function ProductsIndex({
                                                               product.price,
                                                           )}
                                                 </td>
-                                                <td className="hidden px-4 py-3 lg:table-cell">
+                                                <td className="px-4 py-3">
                                                     <span
                                                         className={
                                                             product.stock === 0
@@ -286,7 +282,7 @@ export default function ProductsIndex({
                                                         {product.stock}
                                                     </span>
                                                 </td>
-                                                <td className="hidden px-4 py-3 md:table-cell">
+                                                <td className="px-4 py-3">
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyles[product.status]}`}
                                                     >

@@ -82,7 +82,7 @@ export default function SellingProductsReport({
                         <div className="border-b p-4">
                             <Form
                                 {...sellingProducts.form()}
-                                className="flex flex-wrap items-end gap-3"
+                                className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
                             >
                                 <div className="grid gap-1.5">
                                     <span className="text-xs text-muted-foreground">
@@ -92,7 +92,7 @@ export default function SellingProductsReport({
                                         name="search"
                                         defaultValue={filters.search ?? ''}
                                         placeholder={t('Search product')}
-                                        className="w-52"
+                                        className="w-full sm:w-52"
                                     />
                                 </div>
                                 <div className="grid gap-1.5">
@@ -104,7 +104,7 @@ export default function SellingProductsReport({
                                         type="date"
                                         defaultValue={filters.from ?? ''}
                                         aria-label={t('From date')}
-                                        className="w-40"
+                                        className="w-full sm:w-40"
                                     />
                                 </div>
                                 <div className="grid gap-1.5">
@@ -116,7 +116,7 @@ export default function SellingProductsReport({
                                         type="date"
                                         defaultValue={filters.to ?? ''}
                                         aria-label={t('To date')}
-                                        className="w-40"
+                                        className="w-full sm:w-40"
                                     />
                                 </div>
                                 <div className="grid gap-1.5">
@@ -180,7 +180,7 @@ export default function SellingProductsReport({
 
                         {rows.length > 0 ? (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
+                                <table className="w-full text-sm max-md:[&_td]:align-top max-md:[&_th]:align-top">
                                     <thead>
                                         <tr className="border-b text-left text-xs text-muted-foreground">
                                             <th className="px-4 py-3 font-medium">
@@ -189,16 +189,16 @@ export default function SellingProductsReport({
                                             <th className="px-4 py-3 font-medium">
                                                 {t('Product')}
                                             </th>
-                                            <th className="hidden px-4 py-3 font-medium md:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Product type')}
                                             </th>
-                                            <th className="hidden px-4 py-3 font-medium md:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Category')}
                                             </th>
-                                            <th className="hidden px-4 py-3 font-medium lg:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Created date')}
                                             </th>
-                                            <th className="hidden px-4 py-3 text-right font-medium md:table-cell">
+                                            <th className="px-4 py-3 text-right font-medium">
                                                 {t('Stock')}
                                             </th>
                                             <th className="px-4 py-3 text-right font-medium">
@@ -221,7 +221,7 @@ export default function SellingProductsReport({
                                                 <td className="px-4 py-3 font-medium">
                                                     {row.product_name}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {row.product_status
                                                         ? t(
                                                               productTypes[
@@ -232,13 +232,13 @@ export default function SellingProductsReport({
                                                           )
                                                         : '—'}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {row.category || '—'}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {row.created_at ?? '—'}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-right md:table-cell">
+                                                <td className="px-4 py-3 text-right">
                                                     {row.stock}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">

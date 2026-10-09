@@ -143,7 +143,6 @@ export default function PaymentMethodsIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Status')}
@@ -151,7 +150,6 @@ export default function PaymentMethodsIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
@@ -165,17 +163,17 @@ export default function PaymentMethodsIndex({
                                                 className="hover:bg-muted/50"
                                             >
                                                 <td className="px-4 py-3">
-                                                    <span className="flex items-center gap-2 font-medium">
+                                                    <span className="flex items-start gap-2 font-medium md:items-center">
                                                         <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
                                                             <CreditCard className="size-4" />
                                                         </span>
                                                         {method.name}
                                                     </span>
                                                 </td>
-                                                <td className="hidden px-4 py-3 font-mono text-xs md:table-cell">
+                                                <td className="px-4 py-3 font-mono text-xs">
                                                     {method.code}
                                                 </td>
-                                                <td className="hidden px-4 py-3 md:table-cell">
+                                                <td className="px-4 py-3">
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
                                                             method.is_active

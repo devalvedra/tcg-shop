@@ -184,12 +184,11 @@ export default function PromoCodesIndex({ promoCodes, filters }: Props) {
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
-                                            <th className="hidden px-4 py-3 font-medium lg:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Discount')}
                                             </th>
-                                            <th className="hidden px-4 py-3 font-medium md:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Status')}
                                             </th>
                                             <SortableTh
@@ -198,7 +197,6 @@ export default function PromoCodesIndex({ promoCodes, filters }: Props) {
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
@@ -220,7 +218,7 @@ export default function PromoCodesIndex({ promoCodes, filters }: Props) {
                                                             {promo.code}
                                                         </span>
                                                     </td>
-                                                    <td className="hidden px-4 py-3 md:table-cell">
+                                                    <td className="px-4 py-3">
                                                         <p className="font-medium">
                                                             {promo.name}
                                                         </p>
@@ -232,17 +230,17 @@ export default function PromoCodesIndex({ promoCodes, filters }: Props) {
                                                             </p>
                                                         )}
                                                     </td>
-                                                    <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                                                    <td className="px-4 py-3 text-muted-foreground">
                                                         {discountLabel(promo)}
                                                     </td>
-                                                    <td className="hidden px-4 py-3 md:table-cell">
+                                                    <td className="px-4 py-3">
                                                         <span
                                                             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${status.styles}`}
                                                         >
                                                             {status.label}
                                                         </span>
                                                     </td>
-                                                    <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                                                    <td className="px-4 py-3 text-muted-foreground">
                                                         {promo.usage_limit
                                                             ? `${promo.uses_count} / ${promo.usage_limit}`
                                                             : promo.uses_count}

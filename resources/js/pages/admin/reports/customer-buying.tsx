@@ -67,7 +67,7 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
                         <div className="border-b p-4">
                             <Form
                                 {...customerBuying.form()}
-                                className="flex flex-wrap items-end gap-3"
+                                className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
                             >
                                 <div className="grid gap-1.5">
                                     <span className="text-xs text-muted-foreground">
@@ -77,7 +77,7 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
                                         name="customer"
                                         defaultValue={filters.customer ?? ''}
                                         placeholder={t('Search by customer')}
-                                        className="w-52"
+                                        className="w-full sm:w-52"
                                     />
                                 </div>
                                 <div className="grid gap-1.5">
@@ -89,7 +89,7 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
                                         type="date"
                                         defaultValue={filters.from ?? ''}
                                         aria-label={t('From date')}
-                                        className="w-40"
+                                        className="w-full sm:w-40"
                                     />
                                 </div>
                                 <div className="grid gap-1.5">
@@ -101,7 +101,7 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
                                         type="date"
                                         defaultValue={filters.to ?? ''}
                                         aria-label={t('To date')}
-                                        className="w-40"
+                                        className="w-full sm:w-40"
                                     />
                                 </div>
                                 <Button type="submit" variant="outline">
@@ -120,7 +120,7 @@ export default function CustomerBuyingReport({ rows, filters }: Props) {
 
                         {rows.length > 0 ? (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
+                                <table className="w-full text-sm max-md:[&_td]:align-top max-md:[&_th]:align-top">
                                     <thead>
                                         <tr className="border-b text-left text-xs text-muted-foreground">
                                             <th className="px-4 py-3 font-medium">

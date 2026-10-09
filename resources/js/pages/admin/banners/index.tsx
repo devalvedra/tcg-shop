@@ -146,7 +146,6 @@ export default function BannersIndex({ banners, filters }: Props) {
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Link')}
@@ -154,7 +153,6 @@ export default function BannersIndex({ banners, filters }: Props) {
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Status')}
@@ -162,7 +160,6 @@ export default function BannersIndex({ banners, filters }: Props) {
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
@@ -176,7 +173,7 @@ export default function BannersIndex({ banners, filters }: Props) {
                                                 className="hover:bg-muted/50"
                                             >
                                                 <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-start gap-3 md:items-center">
                                                         {banner.url ? (
                                                             <img
                                                                 src={banner.url}
@@ -204,13 +201,13 @@ export default function BannersIndex({ banners, filters }: Props) {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {banner.sort_order}
                                                 </td>
-                                                <td className="hidden max-w-56 truncate px-4 py-3 text-muted-foreground lg:table-cell">
+                                                <td className="max-w-56 truncate px-4 py-3 text-muted-foreground">
                                                     {banner.link_url ?? '—'}
                                                 </td>
-                                                <td className="hidden px-4 py-3 md:table-cell">
+                                                <td className="px-4 py-3">
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
                                                             banner.is_active

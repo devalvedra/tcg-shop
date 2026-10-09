@@ -132,7 +132,7 @@ export default function ShowOrder({
                                             {order.items.map((item) => (
                                                 <tr key={item.id}>
                                                     <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-3">
+                                                        <div className="flex items-start gap-3 md:items-center">
                                                             {item.product_image_url ? (
                                                                 <img
                                                                     src={

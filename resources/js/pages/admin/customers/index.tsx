@@ -158,7 +158,6 @@ export default function CustomersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Added')}
@@ -166,7 +165,6 @@ export default function CustomersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <th className="px-4 py-3 font-medium">
                                                 {t('Status')}
@@ -183,7 +181,7 @@ export default function CustomersIndex({
                                                 className="hover:bg-muted/50"
                                             >
                                                 <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-start gap-3 md:items-center">
                                                         <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-semibold text-white">
                                                             {getInitials(
                                                                 customer.name,
@@ -202,10 +200,10 @@ export default function CustomersIndex({
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {customer.phone ?? '—'}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {new Date(
                                                         customer.created_at,
                                                     ).toLocaleDateString()}

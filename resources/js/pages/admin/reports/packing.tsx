@@ -59,7 +59,7 @@ export default function PackingReport({ rows, filters }: Props) {
                         <div className="border-b p-4">
                             <Form
                                 {...packing.form()}
-                                className="flex flex-wrap items-end gap-3"
+                                className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
                             >
                                 <div className="grid gap-1.5">
                                     <span className="text-xs text-muted-foreground">
@@ -69,7 +69,7 @@ export default function PackingReport({ rows, filters }: Props) {
                                         name="search"
                                         defaultValue={filters.search ?? ''}
                                         placeholder={t('Search product')}
-                                        className="w-52"
+                                        className="w-full sm:w-52"
                                     />
                                 </div>
                                 <Button type="submit" variant="outline">
@@ -81,16 +81,16 @@ export default function PackingReport({ rows, filters }: Props) {
 
                         {rows.length > 0 ? (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
+                                <table className="w-full text-sm max-md:[&_td]:align-top max-md:[&_th]:align-top">
                                     <thead>
                                         <tr className="border-b text-left text-xs text-muted-foreground">
                                             <th className="px-4 py-3 font-medium">
                                                 {t('Product')}
                                             </th>
-                                            <th className="hidden px-4 py-3 font-medium md:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Order date')}
                                             </th>
-                                            <th className="hidden px-4 py-3 font-medium md:table-cell">
+                                            <th className="px-4 py-3 font-medium">
                                                 {t('Customer')}
                                             </th>
                                             <th className="px-4 py-3 text-right font-medium">
@@ -110,10 +110,10 @@ export default function PackingReport({ rows, filters }: Props) {
                                                 <td className="px-4 py-3 font-medium">
                                                     {row.product_name}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {row.order_date ?? '—'}
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {row.user_name}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">

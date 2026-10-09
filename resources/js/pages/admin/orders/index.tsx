@@ -230,7 +230,6 @@ export default function OrdersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Items')}
@@ -238,7 +237,6 @@ export default function OrdersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Total')}
@@ -246,7 +244,6 @@ export default function OrdersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden lg:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Down payment')}
@@ -254,7 +251,6 @@ export default function OrdersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden xl:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Paid')}
@@ -262,7 +258,6 @@ export default function OrdersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden xl:table-cell"
                                             />
                                             <SortableTh
                                                 label={t('Status')}
@@ -270,7 +265,6 @@ export default function OrdersIndex({
                                                 sort={filters.sort}
                                                 direction={direction}
                                                 getHref={sortHref}
-                                                className="hidden md:table-cell"
                                             />
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Actions')}
@@ -298,7 +292,7 @@ export default function OrdersIndex({
                                                         order.created_at,
                                                     ).toLocaleString()}
                                                 </td>
-                                                <td className="hidden px-4 py-3 md:table-cell">
+                                                <td className="px-4 py-3">
                                                     <p className="truncate font-medium">
                                                         {order.customer.name}
                                                     </p>
@@ -306,15 +300,15 @@ export default function OrdersIndex({
                                                         {order.customer.phone}
                                                     </p>
                                                 </td>
-                                                <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {order.items.length}
                                                 </td>
-                                                <td className="hidden px-4 py-3 font-medium lg:table-cell">
+                                                <td className="px-4 py-3 font-medium">
                                                     {formatCurrency(
                                                         order.total,
                                                     )}
                                                 </td>
-                                                <td className="hidden px-4 py-3 xl:table-cell">
+                                                <td className="px-4 py-3">
                                                     {Number(
                                                         order.down_payment,
                                                     ) > 0 ? (
@@ -329,7 +323,7 @@ export default function OrdersIndex({
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="hidden px-4 py-3 xl:table-cell">
+                                                <td className="px-4 py-3">
                                                     <select
                                                         value={
                                                             order.payment_status
@@ -370,7 +364,7 @@ export default function OrdersIndex({
                                                         )}
                                                     </select>
                                                 </td>
-                                                <td className="hidden px-4 py-3 md:table-cell">
+                                                <td className="px-4 py-3">
                                                     <select
                                                         value={order.status}
                                                         onChange={(e) =>
