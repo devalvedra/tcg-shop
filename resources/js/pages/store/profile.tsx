@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { t } from '@/lib/i18n';
+import { timezoneOptionsFor } from '@/lib/timezones';
 import { logout } from '@/routes';
 import type { Address, Auth } from '@/types';
 
@@ -133,6 +134,37 @@ export default function StoreProfile({
                                             />
                                             <InputError
                                                 message={errors.email}
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="timezone">
+                                                {t('Time zone')}
+                                            </Label>
+                                            <select
+                                                id="timezone"
+                                                name="timezone"
+                                                defaultValue={user.timezone}
+                                                className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                            >
+                                                {timezoneOptionsFor(
+                                                    user.timezone,
+                                                ).map((option) => (
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <p className="text-xs text-muted-foreground">
+                                                {t(
+                                                    'Dates and times are shown in this time zone.',
+                                                )}
+                                            </p>
+                                            <InputError
+                                                message={errors.timezone}
                                             />
                                         </div>
 

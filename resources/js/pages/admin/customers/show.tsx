@@ -12,6 +12,7 @@ import CustomerController from '@/actions/App/Http/Controllers/Admin/CustomerCon
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
+import { formatDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import {
     edit as editCustomer,
@@ -212,9 +213,7 @@ export default function ShowCustomer({
                                         {t('Joined')}
                                     </p>
                                     <p className="font-medium">
-                                        {new Date(
-                                            customer.created_at,
-                                        ).toLocaleDateString()}
+                                        {formatDate(customer.created_at)}
                                     </p>
                                 </div>
                             </CardContent>
@@ -288,9 +287,9 @@ export default function ShowCustomer({
                                                     {order.order_number}
                                                 </p>
                                                 <p className="mt-0.5 text-xs text-muted-foreground">
-                                                    {new Date(
+                                                    {formatDate(
                                                         order.created_at,
-                                                    ).toLocaleDateString()}{' '}
+                                                    )}{' '}
                                                     • {order.items_count}{' '}
                                                     {order.items_count === 1
                                                         ? t('item')

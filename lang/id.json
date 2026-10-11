@@ -636,5 +636,9 @@
     "Quote": "Kutipan",
     "Undo": "Urungkan",
     "Redo": "Ulangi",
-    "Clear formatting": "Hapus format"
+    "Clear formatting": "Hapus format",
+    "Time zone": "Zona waktu",
+    "Your time zone": "Zona waktu Anda",
+    "Dates and times are shown in this time zone.": "Tanggal dan jam ditampilkan dalam zona waktu ini.",
+    "Dates and times across the admin pages are shown in this time zone": "Tanggal dan jam di seluruh halaman admin ditampilkan dalam zona waktu ini"
 }

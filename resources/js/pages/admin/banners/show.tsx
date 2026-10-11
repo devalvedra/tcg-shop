@@ -3,6 +3,7 @@ import { ArrowLeft, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
 import BannerController from '@/actions/App/Http/Controllers/Admin/BannerController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import {
     edit as editBanner,
@@ -38,9 +39,7 @@ export default function ShowBanner({ banner }: Props) {
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             {t('Added {date}', {
-                                date: new Date(
-                                    banner.created_at,
-                                ).toLocaleDateString(),
+                                date: formatDate(banner.created_at),
                             })}
                         </p>
                     </div>

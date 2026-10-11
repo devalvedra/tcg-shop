@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\UserTimezone;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -185,6 +186,7 @@ class ReportController extends Controller
      */
     private function sellingProductsRows(Request $request): array
     {
+        $timezone = UserTimezone::resolve($request->user());
         $query = OrderItem::query()
             ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
             ->whereHas('order', function ($query) use ($request) {
@@ -223,14 +225,14 @@ class ReportController extends Controller
             ->orderByDesc('units_sold')
             ->orderByDesc('total_revenue');
 
-        return $query->get()->map(function (OrderItem $row) {
+        return $query->get()->map(function (OrderItem $row) use ($timezone) {
             $createdAt = $row->getAttribute('created_at');
 
             return [
                 'product_name' => $row->product_name,
                 'category' => (string) $row->getAttribute('category'),
                 'product_status' => (string) $row->getAttribute('product_status'),
-                'created_at' => $createdAt ? Carbon::parse((string) $createdAt)->format('d/m/Y') : null,
+                'created_at' => $createdAt ? Carbon::parse((string) $createdAt, 'UTC')->setTimezone($timezone)->format('d/m/Y') : null,
                 'stock' => (int) $row->getAttribute('stock'),
                 'units_sold' => (int) $row->getAttribute('units_sold'),
                 'total_revenue' => (float) $row->getAttribute('total_revenue'),
@@ -245,6 +247,8 @@ class ReportController extends Controller
      */
     private function packingRows(Request $request): array
     {
+        $timezone = UserTimezone::resolve($request->user());
+
         return OrderItem::query()
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('users', 'orders.customer_id', '=', 'users.id')
@@ -274,7 +278,7 @@ class ReportController extends Controller
                 'orders.shipping_province',
                 'orders.shipping_zip',
             ])
-            ->map(function (OrderItem $row): array {
+            ->map(function (OrderItem $row) use ($timezone): array {
                 $orderDate = $row->getAttribute('order_date');
                 $address = collect([
                     $row->getAttribute('receiver_name'),
@@ -288,7 +292,7 @@ class ReportController extends Controller
 
                 return [
                     'product_name' => $row->product_name,
-                    'order_date' => $orderDate ? Carbon::parse((string) $orderDate)->format('d/m/Y') : null,
+                    'order_date' => $orderDate ? Carbon::parse((string) $orderDate, 'UTC')->setTimezone($timezone)->format('d/m/Y') : null,
                     'user_name' => (string) $row->getAttribute('user_name'),
                     'quantity' => $row->quantity,
                     'address' => $address,
@@ -349,6 +353,7 @@ class ReportController extends Controller
     private function customerOrderRows(Request $request): array
     {
         [$from, $to] = $this->customerMonthRange($request);
+        $timezone = UserTimezone::resolve($request->user());
 
         $orders = Order::query()
             ->with(['customer:id,name', 'items'])
@@ -372,7 +377,7 @@ class ReportController extends Controller
                 $rows[] = [
                     'customer_name' => $order->customer->name,
                     'created_at' => $order->created_at->toIso8601String(),
-                    'date' => $date ? $date->format('d/m/Y') : '',
+                    'date' => $date ? (clone $date)->setTimezone($timezone)->format('d/m/Y') : '',
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
                     'product_name' => (string) $item->product_name,

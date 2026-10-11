@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\UpdatePasswordRequest;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\Order;
 use App\Models\ShopSetting;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -18,12 +20,13 @@ class SettingsController extends Controller
     /**
      * Show the admin settings page.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $settings = ShopSetting::allSettings();
         $storeLogo = $settings['store_logo'] ?? null;
 
         return Inertia::render('admin/settings/index', [
+            'adminTimezone' => $request->user()->timezone ?? User::DEFAULT_TIMEZONE,
             'settings' => [
                 'store_name' => $settings['store_name'] ?? config('app.name'),
                 'store_email' => $settings['store_email'] ?? null,
@@ -51,7 +54,11 @@ class SettingsController extends Controller
     public function update(UpdateSettingsRequest $request): RedirectResponse
     {
         $values = $request->validated();
-        unset($values['store_logo']);
+
+        // The administrator's own time zone lives on the users table,
+        // not in the shop settings store.
+        $timezone = $values['timezone'] ?? null;
+        unset($values['timezone'], $values['store_logo']);
 
         if ($request->boolean('store_logo_remove') && $current = ShopSetting::get('store_logo')) {
             Storage::disk('public')->delete($current);
@@ -67,6 +74,10 @@ class SettingsController extends Controller
         }
 
         ShopSetting::setMany($values);
+
+        if (is_string($timezone)) {
+            $request->user()->update(['timezone' => $timezone]);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.settings_updated')]);
 

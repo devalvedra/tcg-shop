@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useInitials } from '@/hooks/use-initials';
+import { formatDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import {
     create as createCustomer,
@@ -204,9 +205,9 @@ export default function CustomersIndex({
                                                     {customer.phone ?? '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-muted-foreground">
-                                                    {new Date(
+                                                    {formatDate(
                                                         customer.created_at,
-                                                    ).toLocaleDateString()}
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <button

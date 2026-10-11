@@ -67,7 +67,7 @@
             <td style="vertical-align: top; text-align: right;">
                 <div class="title">{{ __('Invoice') }}</div>
                 <div class="muted">#{{ $order->order_number }}</div>
-                <div class="muted">{{ $order->created_at?->format('d M Y, H:i') }}</div>
+                <div class="muted">{{ $orderedAt }}</div>
             </td>
         </tr>
     </table>

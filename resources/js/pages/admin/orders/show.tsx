@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/currency';
+import { formatDateTime } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import { index as ordersIndex } from '@/routes/admin/orders';
 import { invoice as invoiceRoute } from '@/routes/orders';
@@ -78,9 +79,7 @@ export default function ShowOrder({
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">
                             {t('Placed {date}', {
-                                date: new Date(
-                                    order.created_at,
-                                ).toLocaleString(),
+                                date: formatDateTime(order.created_at),
                             })}
                         </p>
                     </div>

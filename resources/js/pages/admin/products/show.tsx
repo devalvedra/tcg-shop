@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/currency';
+import { formatDate as formatUserDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import { safeHtml } from '@/lib/safe-html';
 import {
@@ -28,7 +29,7 @@ const statusStyles: Record<ProductStatus, string> = {
 };
 
 const formatDate = (date: string | null) =>
-    date ? new Date(date).toLocaleDateString() : null;
+    date ? formatUserDate(date) : null;
 
 export default function ShowProduct({ product, categories, statuses }: Props) {
     const images = product.images.filter((image) => image.url);
@@ -67,8 +68,7 @@ export default function ShowProduct({ product, categories, statuses }: Props) {
                             </span>
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {t('Added')}{' '}
-                            {new Date(product.created_at).toLocaleDateString()}
+                            {t('Added')} {formatDate(product.created_at)}
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -286,9 +286,7 @@ export default function ShowProduct({ product, categories, statuses }: Props) {
                                         {t('Last updated')}
                                     </p>
                                     <p className="font-medium">
-                                        {new Date(
-                                            product.updated_at,
-                                        ).toLocaleDateString()}
+                                        {formatDate(product.updated_at)}
                                     </p>
                                 </div>
                                 <div className="sm:col-span-2">

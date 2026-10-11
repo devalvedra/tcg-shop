@@ -7,6 +7,7 @@ export type User = {
     role: UserRole;
     status?: 'verified' | 'pending';
     email: string | null;
+    timezone: string;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

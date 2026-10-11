@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateOrderRequest;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Support\UserTimezone;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,13 +56,14 @@ class OrderController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
+        $timezone = UserTimezone::resolve($request->user());
         $orders = $this->filteredOrders($request)
             ->orderByDesc('created_at')
             ->get();
 
         $filename = 'orders-'.now()->format('Y-m-d-His').'.csv';
 
-        return response()->streamDownload(function () use ($orders) {
+        return response()->streamDownload(function () use ($orders, $timezone) {
             $stream = fopen('php://output', 'w');
 
             if (! $stream) {
@@ -88,10 +90,11 @@ class OrderController extends Controller
             ]);
 
             foreach ($orders as $order) {
+                $orderedAt = $order->created_at;
                 fputcsv($stream, [
                     $order->id,
                     $order->order_number,
-                    $order->created_at?->toDateTimeString(),
+                    $orderedAt ? (clone $orderedAt)->setTimezone($timezone)->toDateTimeString() : null,
                     $order->customer->name,
                     $order->customer->phone,
                     $order->customer->email,

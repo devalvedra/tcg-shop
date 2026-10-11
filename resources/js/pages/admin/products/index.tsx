@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currency';
+import { formatDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import {
     create as createProduct,
@@ -43,11 +44,9 @@ const formatPoWindow = (product: Product) => {
         return null;
     }
 
-    const open = product.open_po_date
-        ? new Date(product.open_po_date).toLocaleDateString()
-        : null;
+    const open = product.open_po_date ? formatDate(product.open_po_date) : null;
     const close = product.close_po_date
-        ? new Date(product.close_po_date).toLocaleDateString()
+        ? formatDate(product.close_po_date)
         : null;
 
     return [open, close].filter(Boolean).join(' → ');

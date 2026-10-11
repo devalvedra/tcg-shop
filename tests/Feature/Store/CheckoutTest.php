@@ -354,6 +354,7 @@ test('admin shipping settings are reflected on the cart, checkout, and product p
             'free_shipping_threshold' => '500.00',
             'locale' => 'en',
             'currency' => 'usd',
+            'timezone' => 'Asia/Jakarta',
         ])
         ->assertRedirect();
 

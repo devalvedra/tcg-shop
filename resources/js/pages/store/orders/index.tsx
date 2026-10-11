@@ -3,6 +3,7 @@ import { ArrowRight, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
+import { formatDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import { catalog } from '@/routes';
 import { index as ordersIndex, show as showOrder } from '@/routes/orders';
@@ -121,18 +122,18 @@ export default function MyOrders({
                                                 ? t(
                                                       'Placed {date} · {count} item',
                                                       {
-                                                          date: new Date(
+                                                          date: formatDate(
                                                               order.created_at,
-                                                          ).toLocaleDateString(),
+                                                          ),
                                                           count: order.items_count,
                                                       },
                                                   )
                                                 : t(
                                                       'Placed {date} · {count} items',
                                                       {
-                                                          date: new Date(
+                                                          date: formatDate(
                                                               order.created_at,
-                                                          ).toLocaleDateString(),
+                                                          ),
                                                           count: order.items_count,
                                                       },
                                                   )}

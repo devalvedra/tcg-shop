@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ShopSetting;
+use App\Support\UserTimezone;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -129,8 +130,12 @@ class OrdersController extends Controller
 
         $currency = $settings['currency'] ?? 'usd';
 
+        $orderedAt = $order->created_at;
+        $timezone = UserTimezone::resolve(auth()->user());
+
         $pdf = Pdf::loadView('invoice', [
             'order' => $order,
+            'orderedAt' => $orderedAt ? (clone $orderedAt)->setTimezone($timezone)->format('d M Y, H:i') : null,
             'paymentMethod' => $this->paymentMethodDetails($order),
             'store' => [
                 'name' => $settings['store_name'] ?? config('app.name'),

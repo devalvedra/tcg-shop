@@ -3,6 +3,7 @@ import { CheckCircle2, MapPin, MessageCircle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
+import { formatDateTime } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import { catalog } from '@/routes';
 import orders from '@/routes/orders';
@@ -19,7 +20,7 @@ export default function OrderConfirmation({
     paymentMethods,
     whatsappNumber,
 }: Props) {
-    const placedAt = new Date(order.created_at).toLocaleString();
+    const placedAt = formatDateTime(order.created_at);
     const shippingLabel = [
         order.shipping_address,
         order.shipping_subdistrict,

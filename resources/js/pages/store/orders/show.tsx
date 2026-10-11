@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { formatCurrency } from '@/lib/currency';
+import { formatDateTime } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import {
     cancel,
@@ -156,9 +157,7 @@ export default function ShowOrder({
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">
                             {t('Placed {date}', {
-                                date: new Date(
-                                    order.created_at,
-                                ).toLocaleString(),
+                                date: formatDateTime(order.created_at),
                             })}
                         </p>
                     </div>

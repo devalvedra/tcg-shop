@@ -14,6 +14,7 @@ import { useRef, useState } from 'react';
 import { categoryIconMap, ProductCard } from '@/components/store/product-card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
+import { formatDate as formatUserDate } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import { safeHtml } from '@/lib/safe-html';
 import { catalog, login } from '@/routes';
@@ -36,7 +37,7 @@ const statusStyles: Record<Product['status'], string> = {
 };
 
 const formatDate = (date: string | null) =>
-    date ? new Date(date).toLocaleDateString() : null;
+    date ? formatUserDate(date) : null;
 
 function ProductVideo({ url, title }: { url: string; title: string }) {
     return (

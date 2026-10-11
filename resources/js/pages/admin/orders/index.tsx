@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currency';
+import { formatDateTime } from '@/lib/datetime';
 import { t } from '@/lib/i18n';
 import {
     exportMethod,
@@ -288,9 +289,9 @@ export default function OrdersIndex({
                                                     </Link>
                                                 </td>
                                                 <td className="px-4 py-3 text-muted-foreground">
-                                                    {new Date(
+                                                    {formatDateTime(
                                                         order.created_at,
-                                                    ).toLocaleString()}
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <p className="truncate font-medium">

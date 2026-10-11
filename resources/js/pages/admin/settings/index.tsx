@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import {
+    Clock,
     Globe,
     ImagePlus,
     Settings as SettingsIcon,
@@ -23,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { t } from '@/lib/i18n';
+import { timezoneOptionsFor } from '@/lib/timezones';
 import { index as settingsIndex } from '@/routes/admin/settings';
 
 type Props = {
@@ -43,6 +45,7 @@ type Props = {
         locale: string;
         currency: string;
     };
+    adminTimezone: string;
     passwordRules: string;
 };
 
@@ -59,7 +62,11 @@ const currencyOptions = [
     { value: 'idr', label: 'Rupiah (Rp)' },
 ];
 
-export default function AdminSettings({ settings, passwordRules }: Props) {
+export default function AdminSettings({
+    settings,
+    adminTimezone,
+    passwordRules,
+}: Props) {
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(
         settings.store_logo_url ?? null,
@@ -562,6 +569,45 @@ export default function AdminSettings({ settings, passwordRules }: Props) {
                                             </select>
                                         </div>
                                         <InputError message={errors.currency} />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="gap-0 py-5">
+                                <CardHeader className="px-5 py-0">
+                                    <CardTitle>{t('Your time zone')}</CardTitle>
+                                    <CardDescription>
+                                        {t(
+                                            'Dates and times across the admin pages are shown in this time zone',
+                                        )}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid gap-6 px-5 pt-6 sm:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="timezone">
+                                            {t('Time zone')}
+                                        </Label>
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="size-4 text-muted-foreground" />
+                                            <select
+                                                id="timezone"
+                                                name="timezone"
+                                                defaultValue={adminTimezone}
+                                                className={`w-full ${nativeSelectClasses}`}
+                                            >
+                                                {timezoneOptionsFor(
+                                                    adminTimezone,
+                                                ).map((option) => (
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <InputError message={errors.timezone} />
                                     </div>
                                 </CardContent>
                             </Card>

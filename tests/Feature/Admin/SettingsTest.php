@@ -41,6 +41,7 @@ test('an admin can view the settings page', function () {
             ->where('settings.free_shipping_threshold', '100.00')
             ->where('settings.locale', 'en')
             ->where('settings.currency', 'usd')
+            ->where('adminTimezone', 'UTC')
             ->where('version', config('app.version')));
 });
 
@@ -59,6 +60,7 @@ test('an admin can update the settings', function () {
             'general_description' => '<p>Every card is <strong>near mint</strong>.</p>',
             'locale' => 'id',
             'currency' => 'idr',
+            'timezone' => 'Asia/Jakarta',
         ])
         ->assertRedirect();
 
@@ -86,6 +88,10 @@ test('an admin can update the settings', function () {
         'key' => 'currency',
         'value' => 'idr',
     ]);
+    expect($admin->refresh()->timezone)->toBe('Asia/Jakarta');
+    $this->assertDatabaseMissing('settings', [
+        'key' => 'timezone',
+    ]);
 });
 
 test('settings validation rejects an unsupported locale', function () {
@@ -97,6 +103,8 @@ test('settings validation rejects an unsupported locale', function () {
             'shipping_fee' => '7.50',
             'free_shipping_threshold' => '150.00',
             'locale' => 'fr',
+            'currency' => 'usd',
+            'timezone' => 'Asia/Jakarta',
         ])
         ->assertSessionHasErrors('locale');
 
@@ -114,7 +122,9 @@ test('settings validation rejects an unsupported currency', function () {
             'store_name' => 'Card Haven',
             'shipping_fee' => '7.50',
             'free_shipping_threshold' => '150.00',
+            'locale' => 'en',
             'currency' => 'jpy',
+            'timezone' => 'Asia/Jakarta',
         ])
         ->assertSessionHasErrors('currency');
 
@@ -169,6 +179,7 @@ test('an admin can upload a store logo', function () {
             'free_shipping_threshold' => '100.00',
             'locale' => 'en',
             'currency' => 'usd',
+            'timezone' => 'Asia/Jakarta',
             'store_logo' => UploadedFile::fake()->image('logo.png'),
         ])
         ->assertRedirect();
@@ -192,6 +203,7 @@ test('an admin can remove the store logo', function () {
             'free_shipping_threshold' => '100.00',
             'locale' => 'en',
             'currency' => 'usd',
+            'timezone' => 'Asia/Jakarta',
             'store_logo_remove' => '1',
         ])
         ->assertRedirect();
@@ -207,6 +219,9 @@ test('settings validation rejects invalid values', function () {
         ->put(route('admin.settings.update'), [
             'store_name' => '',
             'shipping_fee' => '-5',
+            'locale' => 'en',
+            'currency' => 'usd',
+            'timezone' => 'Asia/Jakarta',
         ])
         ->assertSessionHasErrors(['store_name', 'shipping_fee']);
 });

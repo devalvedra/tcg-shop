@@ -38,6 +38,7 @@ class UpdateSettingsRequest extends FormRequest
             'free_shipping_threshold' => ['required', 'numeric', 'min:0'],
             'locale' => ['required', 'string', Rule::in(['en', 'id'])],
             'currency' => ['required', 'string', Rule::in(['usd', 'idr'])],
+            'timezone' => ['required', 'string', 'timezone'],
         ];
     }
 }

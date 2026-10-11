@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $role
  * @property string $status
  * @property string|null $email
+ * @property string $timezone
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -31,7 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Address> $addresses
  */
-#[Fillable(['name', 'phone', 'username', 'role', 'status', 'email', 'password'])]
+#[Fillable(['name', 'phone', 'username', 'role', 'status', 'email', 'password', 'timezone'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -70,6 +71,11 @@ class User extends Authenticatable
      * The default password assigned to newly created customer accounts.
      */
     public const string DEFAULT_CUSTOMER_PASSWORD = 'password';
+
+    /**
+     * The time zone assigned to users that never picked one (GMT+7).
+     */
+    public const string DEFAULT_TIMEZONE = 'Asia/Jakarta';
 
     /**
      * Determine whether the user is an administrator.
