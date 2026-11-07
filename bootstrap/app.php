@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // detection, client IPs, and forwarded hosts resolve correctly.
         $middleware->trustProxies(at: CloudflareProxies::trusted());
 
+        // Tie each login session to the password hash it was created with, so
+        // changing a password (admin reset or self-service) logs that user out
+        // of every other device on their next request.
+        $middleware->authenticateSessions();
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->alias([

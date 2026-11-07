@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Concerns\SortableIndex;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCustomerRequest;
+use App\Http\Requests\Admin\UpdateCustomerPasswordRequest;
 use App\Http\Requests\Admin\UpdateCustomerRequest;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -122,6 +124,7 @@ class CustomerController extends Controller
                 ->orderByDesc('id')
                 ->get(),
             'customerStatuses' => User::STATUS_LABELS,
+            'passwordRules' => Password::defaults()->toPasswordRulesString(),
         ]);
     }
 
@@ -155,6 +158,24 @@ class CustomerController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.customer_updated')]);
 
         return to_route('admin.customers.show', $customer);
+    }
+
+    /**
+     * Set a new password for the given customer account.
+     *
+     * Administrators reset customer passwords without knowing the old one.
+     * The AuthenticateSession middleware ends the customer's sessions on
+     * other devices because their password hash changes.
+     */
+    public function updatePassword(UpdateCustomerPasswordRequest $request, User $customer): RedirectResponse
+    {
+        abort_unless($customer->isCustomer(), 404);
+
+        $customer->update($request->validated());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.customer_password_updated')]);
+
+        return back();
     }
 
     /**

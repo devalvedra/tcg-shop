@@ -1,7 +1,8 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { ArrowLeft, MapPin, Star, UserRound } from 'lucide-react';
+import { ArrowLeft, KeyRound, MapPin, Star, UserRound } from 'lucide-react';
 import CustomerController from '@/actions/App/Http/Controllers/Admin/CustomerController';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ type Props = {
     customer: User;
     addresses: Address[];
     customerStatuses: Record<string, string>;
+    passwordRules: string;
 };
 
 const customerStatusStyles: Record<string, string> = {
@@ -28,6 +30,7 @@ export default function EditCustomer({
     customer,
     addresses,
     customerStatuses,
+    passwordRules,
 }: Props) {
     return (
         <>
@@ -142,6 +145,89 @@ export default function EditCustomer({
                                             >
                                                 {t('Cancel')}
                                             </Link>
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </Form>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <KeyRound className="size-5" />
+                            {t('Change password')}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                            {t('Set a new password for {name}', {
+                                name: customer.name,
+                            })}
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <Form
+                            {...CustomerController.updatePassword.form({
+                                customer: customer.id,
+                            })}
+                            options={{
+                                preserveScroll: true,
+                            }}
+                            resetOnSuccess={[
+                                'password',
+                                'password_confirmation',
+                            ]}
+                            className="grid max-w-lg gap-4"
+                        >
+                            {({ processing, errors }) => (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="password">
+                                            {t('New password')}{' '}
+                                            <span className="text-rose-500">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <PasswordInput
+                                            id="password"
+                                            name="password"
+                                            autoComplete="new-password"
+                                            placeholder={t('New password')}
+                                            passwordrules={passwordRules}
+                                            required
+                                        />
+                                        <InputError message={errors.password} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="password_confirmation">
+                                            {t('Confirm password')}{' '}
+                                            <span className="text-rose-500">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <PasswordInput
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            autoComplete="new-password"
+                                            placeholder={t('Confirm password')}
+                                            passwordrules={passwordRules}
+                                            required
+                                        />
+                                        <InputError
+                                            message={
+                                                errors.password_confirmation
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-3 pt-2">
+                                        <Button
+                                            type="submit"
+                                            disabled={processing}
+                                            data-test="update-customer-password-button"
+                                        >
+                                            {t('Change password')}
                                         </Button>
                                     </div>
                                 </>

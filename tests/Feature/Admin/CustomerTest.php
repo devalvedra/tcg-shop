@@ -204,6 +204,97 @@ test('an admin can update a customer verification status', function () {
     $this->assertSame(User::STATUS_PENDING, $customer->fresh()->status);
 });
 
+test('an admin can change a customer password', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->from(route('admin.customers.edit', $customer))
+        ->patch(route('admin.customers.password', $customer), [
+            'password' => 'N3w-Secret!',
+            'password_confirmation' => 'N3w-Secret!',
+        ])
+        ->assertRedirect(route('admin.customers.edit', $customer))
+        ->assertSessionHasNoErrors();
+
+    $this->assertTrue(Hash::check('N3w-Secret!', $customer->fresh()->password));
+});
+
+test('a new customer password must be confirmed', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $originalPassword = $customer->password;
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.password', $customer), [
+            'password' => 'N3w-Secret!',
+            'password_confirmation' => 'N3w-Secret!typo',
+        ])
+        ->assertSessionHasErrors('password');
+
+    $this->assertSame($originalPassword, $customer->fresh()->password);
+});
+
+test('a customer password must meet the strength requirements', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $originalPassword = $customer->password;
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.password', $customer), [
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])
+        ->assertSessionHasErrors('password');
+
+    $this->assertSame($originalPassword, $customer->fresh()->password);
+});
+
+test('the customer password route cannot be used on an admin account', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $otherAdmin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.password', $otherAdmin), [
+            'password' => 'N3w-Secret!',
+            'password_confirmation' => 'N3w-Secret!',
+        ])
+        ->assertNotFound();
+});
+
+test('guests cannot change a customer password', function () {
+    $customer = User::factory()->create();
+
+    $this->patch(route('admin.customers.password', $customer), [
+        'password' => 'N3w-Secret!',
+        'password_confirmation' => 'N3w-Secret!',
+    ])->assertRedirect(route('admin.login'));
+});
+
+test('changing a customer password logs them out of other devices', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $passwordBeforeReset = $customer->password;
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.password', $customer), [
+            'password' => 'N3w-Secret!',
+            'password_confirmation' => 'N3w-Secret!',
+        ])
+        ->assertRedirect();
+
+    // A device that signed in before the reset still carries the old hash.
+    $this->actingAs($customer->fresh())
+        ->withSession(['password_hash_web' => $passwordBeforeReset])
+        ->get(route('profile.index'))
+        ->assertRedirect(route('login'));
+
+    // A session opened after the reset keeps working.
+    $this->actingAs($customer->fresh())
+        ->get(route('profile.index'))
+        ->assertOk();
+});
+
 test('customer accounts created by an admin are verified', function () {
     $admin = User::factory()->asAdmin()->create();
 

@@ -20,6 +20,7 @@ return [
     'customer_updated' => 'Customer updated.',
     'customer_deleted' => 'Customer deleted.',
     'customer_status_updated' => 'Customer verification status updated.',
+    'customer_password_updated' => 'Customer password updated.',
     'account_pending_verification' => 'Your account was created. An admin must verify it before you can log in.',
     'password_requirements' => 'The password must be at least 8 characters and include uppercase and lowercase letters, numbers, and symbols.',
 

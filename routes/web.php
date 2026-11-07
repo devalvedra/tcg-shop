@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('admin.customers.edit');
         Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('admin.customers.update');
         Route::patch('customers/{customer}/status', [CustomerController::class, 'updateStatus'])->name('admin.customers.status');
+        Route::patch('customers/{customer}/password', [CustomerController::class, 'updatePassword'])->name('admin.customers.password');
         Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy');
 
         Route::get('promo-codes', [PromoCodeController::class, 'index'])->name('admin.promo-codes.index');
