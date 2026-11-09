@@ -153,19 +153,29 @@ class OrderController extends Controller
             ->with(['customer:id,name,phone,email', 'items'])
             ->withCount('items')
             ->when($request->filled('search'), function ($query) use ($request) {
-                $search = trim($request->string('search'));
+                $terms = preg_split(
+                    '/\s+/',
+                    trim((string) $request->string('search')),
+                    -1,
+                    PREG_SPLIT_NO_EMPTY,
+                ) ?: [];
 
-                $query->where(function ($query) use ($search) {
-                    $query->where('order_number', 'like', "%{$search}%")
-                        ->orWhereHas('customer', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%")
-                                ->orWhere('phone', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('items', function ($query) use ($search) {
-                            $query->where('product_name', 'like', "%{$search}%");
-                        });
-                });
+                // Every word has to match on its own — order number, the
+                // customer's name, phone or email, or a product name — so a
+                // partial name in any order still finds the order.
+                foreach ($terms as $term) {
+                    $query->where(function ($query) use ($term) {
+                        $query->where('order_number', 'like', "%{$term}%")
+                            ->orWhereHas('customer', function ($query) use ($term) {
+                                $query->where('name', 'like', "%{$term}%")
+                                    ->orWhere('phone', 'like', "%{$term}%")
+                                    ->orWhere('email', 'like', "%{$term}%");
+                            })
+                            ->orWhereHas('items', function ($query) use ($term) {
+                                $query->where('product_name', 'like', "%{$term}%");
+                            });
+                    });
+                }
             })
             ->when($request->filled('customer'), function ($query) use ($request) {
                 $customer = trim($request->string('customer'));

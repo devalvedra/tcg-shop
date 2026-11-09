@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreCustomerRequest;
 use App\Http\Requests\Admin\UpdateCustomerPasswordRequest;
 use App\Http\Requests\Admin\UpdateCustomerRequest;
 use App\Models\Order;
+use App\Models\Province;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -124,7 +125,10 @@ class CustomerController extends Controller
                 ->orderByDesc('id')
                 ->get(),
             'customerStatuses' => User::STATUS_LABELS,
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'passwordRules' => Password::min(4)->toPasswordRulesString(),
+            'provinces' => Province::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 

@@ -53,6 +53,19 @@ const customerStatusStyles: Record<string, string> = {
     pending: 'bg-amber-50 text-amber-700 ring-amber-600/20',
 };
 
+/**
+ * The address written out in full: the street line, then the area and the
+ * city/province/postal lines for whichever of those the customer filled in.
+ */
+const addressDetailLines = (address: Address): string[] =>
+    [
+        address.address,
+        [address.subdistrict, address.district].filter(Boolean).join(', '),
+        [address.city, address.province, address.zip]
+            .filter(Boolean)
+            .join(', '),
+    ].filter(Boolean);
+
 export default function ShowCustomer({
     customer,
     addresses,
@@ -249,9 +262,18 @@ export default function ShowCustomer({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="mt-0.5 text-sm text-muted-foreground">
-                                                        {address.label}
-                                                    </p>
+                                                    <div className="mt-1 flex flex-col gap-0.5">
+                                                        {addressDetailLines(
+                                                            address,
+                                                        ).map((line) => (
+                                                            <p
+                                                                key={line}
+                                                                className="text-sm text-muted-foreground"
+                                                            >
+                                                                {line}
+                                                            </p>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

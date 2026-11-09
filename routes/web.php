@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\CustomerAddressController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
@@ -125,6 +126,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('admin.customers.update');
         Route::patch('customers/{customer}/status', [CustomerController::class, 'updateStatus'])->name('admin.customers.status');
         Route::patch('customers/{customer}/password', [CustomerController::class, 'updatePassword'])->name('admin.customers.password');
+        Route::post('customers/{customer}/addresses', [CustomerAddressController::class, 'store'])->name('admin.customers.addresses.store');
+        Route::put('customers/{customer}/addresses/{address}', [CustomerAddressController::class, 'update'])->name('admin.customers.addresses.update');
+        Route::patch('customers/{customer}/addresses/{address}/default', [CustomerAddressController::class, 'default'])->name('admin.customers.addresses.set-default');
+        Route::delete('customers/{customer}/addresses/{address}', [CustomerAddressController::class, 'destroy'])->name('admin.customers.addresses.destroy');
         Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy');
 
         Route::get('promo-codes', [PromoCodeController::class, 'index'])->name('admin.promo-codes.index');

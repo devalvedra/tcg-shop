@@ -23,6 +23,7 @@ return [
     'customer_password_updated' => 'Kata sandi pelanggan berhasil diperbarui.',
     'account_pending_verification' => 'Akun Anda berhasil dibuat. Admin harus memverifikasi akun sebelum Anda dapat masuk.',
     'password_requirements' => 'Kata sandi harus minimal 8 karakter dan mencakup huruf besar dan kecil, angka, dan simbol.',
+    'password_min' => 'Kata sandi harus minimal 4 karakter.',
 
     'payment_method_created' => 'Metode pembayaran berhasil dibuat.',
     'payment_method_updated' => 'Metode pembayaran berhasil diperbarui.',

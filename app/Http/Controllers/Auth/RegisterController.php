@@ -45,8 +45,8 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:255', Rule::unique(User::class)],
             'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique(User::class)],
-            'password' => $this->strongPasswordRules(),
-        ], $this->strongPasswordMessages());
+            'password' => $this->minimumPasswordRules(),
+        ], $this->minimumPasswordMessages());
 
         $verificationRequired = filter_var(
             ShopSetting::get('customer_verification', '0'),

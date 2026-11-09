@@ -173,6 +173,23 @@ test('orders can be searched by customer name', function () {
             ->where('orders.data.0.id', $order->id));
 });
 
+test('orders can be searched by a partial customer name in any order', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create(['name' => 'Charizard Collector']);
+    $order = Order::factory()->create(['customer_id' => $customer->id]);
+    $other = User::factory()->create(['name' => 'Ash Ketchum']);
+    Order::factory()->create(['customer_id' => $other->id]);
+
+    foreach (['coll', 'char coll', 'collector charizard', 'CHARIZARD   collector'] as $term) {
+        $this->actingAs($admin)
+            ->get(route('admin.orders.index', ['search' => $term]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('orders.data', 1)
+                ->where('orders.data.0.id', $order->id));
+    }
+});
+
 test('orders can be filtered by customer name', function () {
     $admin = User::factory()->asAdmin()->create();
     $customer = User::factory()->create(['name' => 'Ash Ketchum']);

@@ -47,8 +47,8 @@ test('a weak password is rejected with a single message', function () {
         ->from(route('profile.index'))
         ->put(route('user-password.update'), [
             'current_password' => 'password',
-            'password' => 'weakpass',
-            'password_confirmation' => 'weakpass',
+            'password' => 'abc',
+            'password_confirmation' => 'abc',
         ]);
 
     $response
@@ -57,4 +57,21 @@ test('a weak password is rejected with a single message', function () {
 
     expect(session('errors')->get('password'))->toHaveCount(1);
     expect(Hash::check('password', $user->refresh()->password))->toBeTrue();
+});
+
+test('a simple four character password is accepted', function () {
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->from(route('profile.index'))
+        ->put(route('user-password.update'), [
+            'current_password' => 'password',
+            'password' => 'abcd',
+            'password_confirmation' => 'abcd',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('profile.index'));
+
+    expect(Hash::check('abcd', $user->refresh()->password))->toBeTrue();
 });

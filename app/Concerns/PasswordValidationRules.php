@@ -28,8 +28,29 @@ trait PasswordValidationRules
     }
 
     /**
-     * Get the strong password rules shared by registration and the admin
-     * password change: at least 8 characters with lowercase, uppercase,
+     * Get the relaxed password rules used for customer-facing passwords:
+     * any characters, at least four of them.
+     *
+     * @return array<int, string>
+     */
+    protected function minimumPasswordRules(): array
+    {
+        return ['required', 'string', 'min:4', 'confirmed'];
+    }
+
+    /**
+     * Get the validation message for the relaxed password rules.
+     *
+     * @return array<string, string>
+     */
+    protected function minimumPasswordMessages(): array
+    {
+        return ['password.min' => __('shop.password_min')];
+    }
+
+    /**
+     * Get the strong password rules used for the administrator's own
+     * password: at least 8 characters with lowercase, uppercase,
      * numbers, and symbols, enforced by a single expression so failures
      * produce one message instead of one per character class.
      *

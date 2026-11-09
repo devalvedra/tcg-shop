@@ -101,12 +101,12 @@ test('registration requires a confirmed password', function () {
     ])->assertSessionHasErrors('password');
 });
 
-test('registration rejects a weak password with a single message', function () {
+test('registration rejects a password shorter than four characters', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Avery Chen',
         'phone' => '09171234567',
-        'password' => 'weakpass',
-        'password_confirmation' => 'weakpass',
+        'password' => 'abc',
+        'password_confirmation' => 'abc',
     ]);
 
     $response->assertSessionHasErrors('password');
@@ -115,6 +115,21 @@ test('registration rejects a weak password with a single message', function () {
 
     $this->assertDatabaseMissing('users', ['phone' => '09171234567']);
     $this->assertGuest();
+});
+
+test('registration accepts a simple four character password', function () {
+    $this->post(route('register.store'), [
+        'name' => 'Avery Chen',
+        'phone' => '09171234567',
+        'password' => 'abcd',
+        'password_confirmation' => 'abcd',
+    ])->assertRedirect(route('home'));
+
+    $this->assertAuthenticated();
+    $this->assertDatabaseHas('users', [
+        'phone' => '09171234567',
+        'role' => User::ROLE_CUSTOMER,
+    ]);
 });
 
 test('registration phone and email must be unique', function () {

@@ -29,7 +29,7 @@ class UpdateCustomerPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => $this->strongPasswordRules(),
+            'password' => $this->minimumPasswordRules(),
         ];
     }
 
@@ -40,6 +40,6 @@ class UpdateCustomerPasswordRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->strongPasswordMessages();
+        return $this->minimumPasswordMessages();
     }
 }

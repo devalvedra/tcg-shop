@@ -263,9 +263,7 @@ export default function StoreProfile({
                                                 passwordrules={passwordRules}
                                             />
                                             <p className="text-xs text-muted-foreground">
-                                                {t(
-                                                    'At least 8 characters with uppercase, lowercase, numbers, and symbols.',
-                                                )}
+                                                {t('At least 4 characters.')}
                                             </p>
                                             <InputError
                                                 message={errors.password}

@@ -235,19 +235,33 @@ test('a new customer password must be confirmed', function () {
     $this->assertSame($originalPassword, $customer->fresh()->password);
 });
 
-test('a customer password must meet the strength requirements', function () {
+test('a customer password must be at least four characters', function () {
     $admin = User::factory()->asAdmin()->create();
     $customer = User::factory()->create();
     $originalPassword = $customer->password;
 
     $this->actingAs($admin)
         ->patch(route('admin.customers.password', $customer), [
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'abc',
+            'password_confirmation' => 'abc',
         ])
         ->assertSessionHasErrors('password');
 
     $this->assertSame($originalPassword, $customer->fresh()->password);
+});
+
+test('a simple four character password can be set for a customer', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.password', $customer), [
+            'password' => 'abcd',
+            'password_confirmation' => 'abcd',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertTrue(Hash::check('abcd', $customer->fresh()->password));
 });
 
 test('the customer password route cannot be used on an admin account', function () {
@@ -309,4 +323,269 @@ test('customer accounts created by an admin are verified', function () {
         'phone' => '09171234567',
         'status' => User::STATUS_VERIFIED,
     ]);
+});
+
+test('an admin can add a shipping address to a customer', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->from(route('admin.customers.edit', $customer))
+        ->post(route('admin.customers.addresses.store', $customer), [
+            'receiver_name' => 'Alex Carter',
+            'address' => '123 Card Street',
+            'city' => 'Manila',
+            'province' => 'Metro Manila',
+            'zip' => '1000',
+        ])
+        ->assertRedirect(route('admin.customers.edit', $customer))
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('addresses', [
+        'user_id' => $customer->id,
+        'receiver_name' => 'Alex Carter',
+        'address' => '123 Card Street',
+        'city' => 'Manila',
+    ]);
+});
+
+test('the first address added becomes the default', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.customers.addresses.store', $customer), [
+            'receiver_name' => 'Alex Carter',
+            'address' => '123 Card Street',
+            'city' => 'Manila',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($customer->addresses()->first()?->is_default)->toBeTrue();
+});
+
+test('an admin can mark any of a customer addresses as the default', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $oldDefault = Address::factory()->default()->create(['user_id' => $customer->id]);
+    $newDefault = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.addresses.set-default', [$customer, $newDefault]))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $this->assertTrue($newDefault->fresh()->is_default);
+    $this->assertFalse($oldDefault->fresh()->is_default);
+});
+
+test('an admin can delete a customer address', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->delete(route('admin.customers.addresses.destroy', [$customer, $address]))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseMissing('addresses', ['id' => $address->id]);
+});
+
+test('deleting the default address promotes the newest remaining address', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $default = Address::factory()->default()->create(['user_id' => $customer->id]);
+    $remaining = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->delete(route('admin.customers.addresses.destroy', [$customer, $default]))
+        ->assertRedirect();
+
+    $this->assertDatabaseMissing('addresses', ['id' => $default->id]);
+    $this->assertTrue($remaining->fresh()->is_default);
+});
+
+test('address routes refuse to touch another customer address', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $other = User::factory()->create();
+    $foreignAddress = Address::factory()->create(['user_id' => $other->id]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.addresses.set-default', [$customer, $foreignAddress]))
+        ->assertNotFound();
+
+    $this->actingAs($admin)
+        ->delete(route('admin.customers.addresses.destroy', [$customer, $foreignAddress]))
+        ->assertNotFound();
+
+    $this->assertDatabaseHas('addresses', ['id' => $foreignAddress->id]);
+});
+
+test('address routes refuse to target a non customer account', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $otherAdmin = User::factory()->asAdmin()->create();
+    $address = Address::factory()->create(['user_id' => $otherAdmin->id]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.customers.addresses.store', $otherAdmin), [
+            'receiver_name' => 'Alex Carter',
+            'address' => '123 Card Street',
+            'city' => 'Manila',
+        ])
+        ->assertNotFound();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.customers.addresses.set-default', [$otherAdmin, $address]))
+        ->assertNotFound();
+
+    $this->actingAs($admin)
+        ->delete(route('admin.customers.addresses.destroy', [$otherAdmin, $address]))
+        ->assertNotFound();
+});
+
+test('adding a customer address validates the required fields', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.customers.addresses.store', $customer), [
+            'city' => '',
+        ])
+        ->assertSessionHasErrors(['receiver_name', 'address', 'city']);
+});
+
+test('an admin can edit a customer address', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->from(route('admin.customers.edit', $customer))
+        ->put(route('admin.customers.addresses.update', [$customer, $address]), [
+            'receiver_name' => 'Alex Carter',
+            'address' => '456 Updated Street',
+            'city' => 'Manila',
+            'province' => 'Metro Manila',
+            'district' => 'Quiapo',
+            'subdistrict' => 'Barangay 5',
+            'zip' => '1001',
+            'is_default' => $address->is_default,
+        ])
+        ->assertRedirect(route('admin.customers.edit', $customer))
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('addresses', [
+        'id' => $address->id,
+        'receiver_name' => 'Alex Carter',
+        'address' => '456 Updated Street',
+        'district' => 'Quiapo',
+        'zip' => '1001',
+    ]);
+});
+
+test('editing an address can promote it to the default', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $oldDefault = Address::factory()->default()->create(['user_id' => $customer->id]);
+    $address = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.customers.addresses.update', [$customer, $address]), [
+            'receiver_name' => $address->receiver_name,
+            'address' => $address->address,
+            'city' => $address->city,
+            'is_default' => true,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertTrue($address->fresh()->is_default);
+    $this->assertFalse($oldDefault->fresh()->is_default);
+});
+
+test('editing an address cannot leave the customer without a default', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $address = Address::factory()->default()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.customers.addresses.update', [$customer, $address]), [
+            'receiver_name' => $address->receiver_name,
+            'address' => $address->address,
+            'city' => $address->city,
+            'is_default' => false,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertTrue($address->fresh()->is_default);
+});
+
+test('editing another customer address is not allowed', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $other = User::factory()->create();
+    $foreignAddress = Address::factory()->create(['user_id' => $other->id]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.customers.addresses.update', [$customer, $foreignAddress]), [
+            'receiver_name' => 'Alex Carter',
+            'address' => '123 Card Street',
+            'city' => 'Manila',
+        ])
+        ->assertNotFound();
+
+    $this->assertDatabaseMissing('addresses', [
+        'id' => $foreignAddress->id,
+        'address' => '123 Card Street',
+    ]);
+});
+
+test('editing a customer address validates the required fields', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.customers.addresses.update', [$customer, $address]), [
+            'receiver_name' => '',
+            'address' => '',
+            'city' => '',
+        ])
+        ->assertSessionHasErrors(['receiver_name', 'address', 'city']);
+});
+
+test('guests cannot edit customer addresses', function () {
+    $customer = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->put(route('admin.customers.addresses.update', [$customer, $address]), [
+        'receiver_name' => 'Alex Carter',
+        'address' => '123 Card Street',
+        'city' => 'Manila',
+    ])->assertRedirect(route('admin.login'));
+
+    $this->assertDatabaseMissing('addresses', [
+        'id' => $address->id,
+        'address' => '123 Card Street',
+    ]);
+});
+
+test('guests cannot manage customer addresses', function () {
+    $customer = User::factory()->create();
+    $address = Address::factory()->create(['user_id' => $customer->id]);
+
+    $this->post(route('admin.customers.addresses.store', $customer), [
+        'receiver_name' => 'Alex Carter',
+        'address' => '123 Card Street',
+        'city' => 'Manila',
+    ])->assertRedirect(route('admin.login'));
+
+    $this->patch(route('admin.customers.addresses.set-default', [$customer, $address]))
+        ->assertRedirect(route('admin.login'));
+
+    $this->delete(route('admin.customers.addresses.destroy', [$customer, $address]))
+        ->assertRedirect(route('admin.login'));
+
+    $this->assertDatabaseHas('addresses', ['id' => $address->id]);
 });

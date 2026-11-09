@@ -19,7 +19,7 @@ class PasswordUpdateRequest extends FormRequest
     {
         return [
             'current_password' => $this->currentPasswordRules(),
-            'password' => $this->strongPasswordRules(),
+            'password' => $this->minimumPasswordRules(),
         ];
     }
 
@@ -30,6 +30,6 @@ class PasswordUpdateRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->strongPasswordMessages();
+        return $this->minimumPasswordMessages();
     }
 }

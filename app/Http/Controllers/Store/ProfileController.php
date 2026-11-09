@@ -17,7 +17,7 @@ class ProfileController extends Controller
     public function index(Request $request): Response
     {
         return Inertia::render('store/profile', [
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'passwordRules' => Password::min(4)->toPasswordRulesString(),
             'addresses' => $request->user()
                 ->addresses()
                 ->orderByDesc('is_default')
