@@ -1,13 +1,17 @@
-import { Form, Head } from '@inertiajs/react';
-import { Download, Package, Search } from 'lucide-react';
+import { Form, Head, router } from '@inertiajs/react';
+import { Download, Package, Search, UserRound } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
 import reportsRoutes, { packing } from '@/routes/admin/reports';
 
+type GroupKind = 'product' | 'customer';
+
 type Filters = {
     search?: string | null;
+    group?: string | null;
 };
 
 type Row = {
@@ -18,59 +22,55 @@ type Row = {
     address: string;
 };
 
-type CustomerGroup = {
-    user_name: string;
+type GroupRow = {
+    label: string;
     quantity: number;
     addresses: string[];
 };
 
-type ProductGroup = {
-    product_name: string;
+type Group = {
+    label: string;
     quantity: number;
-    customers: CustomerGroup[];
+    rows: GroupRow[];
 };
 
 /**
- * Fold the flat packing rows into product groups, then customer groups, so
- * the table reads as "this many of this card for this person at this address".
+ * Fold the flat packing rows into one level of groups, then a second level.
+ * Grouping by product lists customers underneath; grouping by customer lists
+ * products underneath.
  */
-const groupRows = (rows: Row[]): ProductGroup[] => {
-    const products = new Map<string, ProductGroup>();
+const groupRows = (rows: Row[], groupBy: GroupKind): Group[] => {
+    const groups = new Map<string, Group>();
 
     for (const row of rows) {
-        let product = products.get(row.product_name);
+        const groupLabel =
+            groupBy === 'product' ? row.product_name : row.user_name;
+        const rowLabel =
+            groupBy === 'product' ? row.user_name : row.product_name;
 
-        if (!product) {
-            product = {
-                product_name: row.product_name,
-                quantity: 0,
-                customers: [],
-            };
-            products.set(row.product_name, product);
+        let group = groups.get(groupLabel);
+
+        if (!group) {
+            group = { label: groupLabel, quantity: 0, rows: [] };
+            groups.set(groupLabel, group);
         }
 
-        let customer = product.customers.find(
-            (group) => group.user_name === row.user_name,
-        );
+        let entry = group.rows.find((item) => item.label === rowLabel);
 
-        if (!customer) {
-            customer = {
-                user_name: row.user_name,
-                quantity: 0,
-                addresses: [],
-            };
-            product.customers.push(customer);
+        if (!entry) {
+            entry = { label: rowLabel, quantity: 0, addresses: [] };
+            group.rows.push(entry);
         }
 
-        product.quantity += row.quantity;
-        customer.quantity += row.quantity;
+        group.quantity += row.quantity;
+        entry.quantity += row.quantity;
 
-        if (row.address && !customer.addresses.includes(row.address)) {
-            customer.addresses.push(row.address);
+        if (row.address && !entry.addresses.includes(row.address)) {
+            entry.addresses.push(row.address);
         }
     }
 
-    return [...products.values()];
+    return [...groups.values()];
 };
 
 type Props = {
@@ -79,10 +79,40 @@ type Props = {
 };
 
 export default function PackingReport({ rows, filters }: Props) {
-    const groups = groupRows(rows);
+    const [groupBy, setGroupBy] = useState<GroupKind>(
+        filters.group === 'customer' ? 'customer' : 'product',
+    );
+    const [search, setSearch] = useState(filters.search ?? '');
+
+    const isCustomerGroup = groupBy === 'customer';
+    const groups = groupRows(rows, groupBy);
 
     const query = {
-        ...(filters.search ? { search: filters.search } : {}),
+        ...(search.trim() ? { search: search.trim() } : {}),
+        ...(groupBy === 'customer' ? { group: 'customer' } : {}),
+    };
+
+    /**
+     * Switching grouping changes what the search field matches, so the old
+     * term is cleared to avoid searching a customer name against products
+     * (or the other way around). When there was a term, the rows are refetched
+     * under the new grouping with the search removed.
+     */
+    const changeGroup = (group: GroupKind) => {
+        const hadSearch = search.trim() !== '';
+
+        setGroupBy(group);
+        setSearch('');
+
+        if (hadSearch) {
+            router.get(
+                packing.url({
+                    query: group === 'customer' ? { group: 'customer' } : {},
+                }),
+                {},
+                { preserveState: true, preserveScroll: true, replace: true },
+            );
+        }
     };
 
     return (
@@ -120,12 +150,56 @@ export default function PackingReport({ rows, filters }: Props) {
                             >
                                 <div className="grid gap-1.5">
                                     <span className="text-xs text-muted-foreground">
-                                        {t('Product name')}
+                                        {t('Group by')}
+                                    </span>
+                                    <div className="flex h-9 items-center gap-3 rounded-md border border-input px-3">
+                                        <label className="flex items-center gap-1.5 text-xs">
+                                            <input
+                                                type="radio"
+                                                name="group"
+                                                value="product"
+                                                checked={groupBy === 'product'}
+                                                onChange={() =>
+                                                    changeGroup('product')
+                                                }
+                                                className="size-3.5 accent-indigo-600"
+                                            />
+                                            {t('Product')}
+                                        </label>
+                                        <label className="flex items-center gap-1.5 text-xs">
+                                            <input
+                                                type="radio"
+                                                name="group"
+                                                value="customer"
+                                                checked={groupBy === 'customer'}
+                                                onChange={() =>
+                                                    changeGroup('customer')
+                                                }
+                                                className="size-3.5 accent-indigo-600"
+                                            />
+                                            {t('Customer')}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <span className="text-xs text-muted-foreground">
+                                        {t(
+                                            isCustomerGroup
+                                                ? 'Customer name'
+                                                : 'Product name',
+                                        )}
                                     </span>
                                     <Input
                                         name="search"
-                                        defaultValue={filters.search ?? ''}
-                                        placeholder={t('Search product')}
+                                        value={search}
+                                        onChange={(event) =>
+                                            setSearch(event.target.value)
+                                        }
+                                        placeholder={t(
+                                            isCustomerGroup
+                                                ? 'Search customer'
+                                                : 'Search product',
+                                        )}
                                         className="w-full sm:w-52"
                                     />
                                 </div>
@@ -142,7 +216,11 @@ export default function PackingReport({ rows, filters }: Props) {
                                     <thead>
                                         <tr className="border-b text-left text-xs text-muted-foreground">
                                             <th className="px-4 py-3 font-medium">
-                                                {t('Customer')}
+                                                {t(
+                                                    isCustomerGroup
+                                                        ? 'Product'
+                                                        : 'Customer',
+                                                )}
                                             </th>
                                             <th className="px-4 py-3 text-right font-medium">
                                                 {t('Quantity')}
@@ -152,9 +230,9 @@ export default function PackingReport({ rows, filters }: Props) {
                                             </th>
                                         </tr>
                                     </thead>
-                                    {groups.map((product) => (
+                                    {groups.map((group) => (
                                         <tbody
-                                            key={product.product_name}
+                                            key={group.label}
                                             className="divide-y divide-border"
                                         >
                                             <tr className="border-t-2 border-border bg-muted/60">
@@ -164,53 +242,51 @@ export default function PackingReport({ rows, filters }: Props) {
                                                 >
                                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                                         <span className="flex items-center gap-2 font-semibold">
-                                                            <Package className="size-4 text-indigo-600" />
-                                                            {
-                                                                product.product_name
-                                                            }
+                                                            {isCustomerGroup ? (
+                                                                <UserRound className="size-4 text-indigo-600" />
+                                                            ) : (
+                                                                <Package className="size-4 text-indigo-600" />
+                                                            )}
+                                                            {group.label}
                                                         </span>
                                                         <span className="text-xs text-muted-foreground">
                                                             {t('Total')}:{' '}
-                                                            {product.quantity}
+                                                            {group.quantity}
                                                         </span>
                                                     </div>
                                                 </td>
                                             </tr>
-                                            {product.customers.map(
-                                                (customer) => (
-                                                    <tr
-                                                        key={customer.user_name}
-                                                        className="hover:bg-muted/50"
-                                                    >
-                                                        <td className="px-4 py-3 font-medium">
-                                                            {customer.user_name}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-right">
-                                                            {customer.quantity}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-muted-foreground">
-                                                            {customer.addresses
-                                                                .length > 0
-                                                                ? customer.addresses.map(
-                                                                      (
-                                                                          address,
-                                                                      ) => (
-                                                                          <p
-                                                                              key={
-                                                                                  address
-                                                                              }
-                                                                          >
-                                                                              {
-                                                                                  address
-                                                                              }
-                                                                          </p>
-                                                                      ),
-                                                                  )
-                                                                : '—'}
-                                                        </td>
-                                                    </tr>
-                                                ),
-                                            )}
+                                            {group.rows.map((entry) => (
+                                                <tr
+                                                    key={entry.label}
+                                                    className="hover:bg-muted/50"
+                                                >
+                                                    <td className="px-4 py-3 font-medium">
+                                                        {entry.label}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {entry.quantity}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-muted-foreground">
+                                                        {entry.addresses
+                                                            .length > 0
+                                                            ? entry.addresses.map(
+                                                                  (address) => (
+                                                                      <p
+                                                                          key={
+                                                                              address
+                                                                          }
+                                                                      >
+                                                                          {
+                                                                              address
+                                                                          }
+                                                                      </p>
+                                                                  ),
+                                                              )
+                                                            : '—'}
+                                                    </td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     ))}
                                 </table>

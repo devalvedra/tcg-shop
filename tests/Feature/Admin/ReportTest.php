@@ -141,6 +141,66 @@ test('the packing report lists product lines from orders that still need packing
     expect($response->headers->get('content-disposition'))->toContain('.xlsx');
 });
 
+test('the packing report search follows the selected grouping', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $ash = User::factory()->create(['name' => 'Ash Ketchum']);
+    $misty = User::factory()->create(['name' => 'Misty Waterflower']);
+
+    $ashOrder = Order::factory()->create([
+        'customer_id' => $ash->id,
+        'status' => Order::STATUS_PROCESSING,
+    ]);
+    $ashOrder->items()->create([
+        'product_name' => 'Charizard EX',
+        'quantity' => 2,
+        'unit_price' => '50',
+        'subtotal' => '100',
+    ]);
+
+    $mistyOrder = Order::factory()->create([
+        'customer_id' => $misty->id,
+        'status' => Order::STATUS_PROCESSING,
+    ]);
+    $mistyOrder->items()->create([
+        'product_name' => 'Starmie V',
+        'quantity' => 1,
+        'unit_price' => '10',
+        'subtotal' => '10',
+    ]);
+
+    // Default grouping is by product, so the search matches product names.
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing', ['search' => 'charizard']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('rows', 1)
+            ->where('rows.0.product_name', 'Charizard EX')
+            ->where('filters.group', 'product')
+            ->where('filters.search', 'charizard'));
+
+    // Grouping by customer searches customer names instead.
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing', ['group' => 'customer', 'search' => 'misty']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('rows', 1)
+            ->where('rows.0.user_name', 'Misty Waterflower')
+            ->where('filters.group', 'customer'));
+
+    // Product names no longer match while grouping by customer.
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing', ['group' => 'customer', 'search' => 'charizard']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('rows', 0));
+
+    // Unknown grouping values fall back to the product grouping.
+    $this->actingAs($admin)
+        ->get(route('admin.reports.packing', ['group' => 'unknown']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.group', 'product'));
+});
+
 test('the customer order report lists one row per product line', function () {
     $admin = User::factory()->asAdmin()->create();
     $customer = User::factory()->create(['name' => 'Ash Ketchum']);

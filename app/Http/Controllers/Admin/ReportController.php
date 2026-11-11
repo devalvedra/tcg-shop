@@ -221,7 +221,10 @@ class ReportController extends Controller
     {
         return Inertia::render('admin/reports/packing', [
             'rows' => $this->packingRows($request),
-            'filters' => $this->filters($request, ['search']),
+            'filters' => [
+                'search' => $request->input('search') ?: null,
+                'group' => $this->packingGroup($request),
+            ],
         ]);
     }
 
@@ -303,6 +306,16 @@ class ReportController extends Controller
     }
 
     /**
+     * The grouping selected on the packing report: by product or by customer.
+     *
+     * @return 'product'|'customer'
+     */
+    private function packingGroup(Request $request): string
+    {
+        return $request->input('group') === 'customer' ? 'customer' : 'product';
+    }
+
+    /**
      * Build the packing rows (one row per product line).
      *
      * @return array<int, array{product_name: string, order_date: string|null, user_name: string, quantity: int, address: string}>
@@ -322,7 +335,11 @@ class ReportController extends Controller
             ->when($request->filled('search'), function (Builder $query) use ($request) {
                 $search = trim($request->string('search'));
 
-                $query->where('order_items.product_name', 'like', "%{$search}%");
+                if ($this->packingGroup($request) === 'customer') {
+                    $query->where('users.name', 'like', "%{$search}%");
+                } else {
+                    $query->where('order_items.product_name', 'like', "%{$search}%");
+                }
             })
             ->orderBy('orders.created_at')
             ->orderBy('orders.id')
