@@ -206,6 +206,93 @@ test('the total sales report includes order rows plus date and month subtotals',
             ->where('rows.4.total', 100));
 });
 
+test('the selling product history returns the order lines for a product', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create(['name' => 'Ash Ketchum']);
+
+    $order = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_COMPLETED,
+        'created_at' => '2026-01-15 10:00:00',
+    ]);
+    $order->items()->create([
+        'product_name' => 'Charizard EX',
+        'quantity' => 2,
+        'unit_price' => '50',
+        'subtotal' => '100',
+    ]);
+
+    $cancelled = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_CANCELLED,
+    ]);
+    $cancelled->items()->create([
+        'product_name' => 'Charizard EX',
+        'quantity' => 9,
+        'unit_price' => '50',
+        'subtotal' => '450',
+    ]);
+
+    $other = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_COMPLETED,
+    ]);
+    $other->items()->create([
+        'product_name' => 'Booster Box',
+        'quantity' => 1,
+        'unit_price' => '30',
+        'subtotal' => '30',
+    ]);
+
+    $this->actingAs($admin)
+        ->getJson(route('admin.reports.selling-products.history', ['product' => 'Charizard EX']))
+        ->assertOk()
+        ->assertJsonCount(1, 'orders')
+        ->assertJsonPath('orders.0.order_id', $order->id)
+        ->assertJsonPath('orders.0.order_number', $order->order_number)
+        ->assertJsonPath('orders.0.customer_name', 'Ash Ketchum')
+        ->assertJsonPath('orders.0.date', '15/01/2026')
+        ->assertJsonPath('orders.0.quantity', 2);
+});
+
+test('the selling product history respects the report status filter', function () {
+    $admin = User::factory()->asAdmin()->create();
+    $customer = User::factory()->create();
+
+    $processing = Order::factory()->create([
+        'customer_id' => $customer->id,
+        'status' => Order::STATUS_PROCESSING,
+    ]);
+    $processing->items()->create([
+        'product_name' => 'Charizard EX',
+        'quantity' => 1,
+        'unit_price' => '50',
+        'subtotal' => '50',
+    ]);
+
+    $this->actingAs($admin)
+        ->getJson(route('admin.reports.selling-products.history', [
+            'product' => 'Charizard EX',
+            'statuses' => [Order::STATUS_COMPLETED],
+        ]))
+        ->assertOk()
+        ->assertJsonCount(0, 'orders');
+});
+
+test('the selling product history is empty without a product name', function () {
+    $admin = User::factory()->asAdmin()->create();
+
+    $this->actingAs($admin)
+        ->getJson(route('admin.reports.selling-products.history'))
+        ->assertOk()
+        ->assertJsonCount(0, 'orders');
+});
+
+test('guests cannot view the selling product history', function () {
+    $this->getJson(route('admin.reports.selling-products.history', ['product' => 'Charizard EX']))
+        ->assertUnauthorized();
+});
+
 test('a report can be exported as an excel file', function () {
     $admin = User::factory()->asAdmin()->create();
 

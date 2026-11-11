@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\UserTimezone;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -35,6 +36,67 @@ class ReportController extends Controller
             'orderStatuses' => Order::STATUS_LABELS,
             'productTypes' => Product::STATUS_LABELS,
         ]);
+    }
+
+    /**
+     * The order lines behind one product row, for the selling products
+     * history modal.
+     */
+    public function sellingProductHistory(Request $request): JsonResponse
+    {
+        $productName = trim((string) $request->string('product'));
+
+        if ($productName === '') {
+            return response()->json(['orders' => []]);
+        }
+
+        $timezone = UserTimezone::resolve($request->user());
+
+        $orders = OrderItem::query()
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('users', 'orders.customer_id', '=', 'users.id')
+            ->where('order_items.product_name', $productName)
+            ->where(function ($query) use ($request) {
+                $statuses = $this->statusFilter($request);
+
+                if ($statuses !== []) {
+                    $query->whereIn('orders.status', $statuses);
+                } else {
+                    $query->whereNot('orders.status', Order::STATUS_CANCELLED);
+                }
+
+                if ($request->filled('from')) {
+                    $query->whereDate('orders.created_at', '>=', $request->input('from'));
+                }
+
+                if ($request->filled('to')) {
+                    $query->whereDate('orders.created_at', '<=', $request->input('to'));
+                }
+            })
+            ->orderByDesc('orders.created_at')
+            ->orderByDesc('orders.id')
+            ->get([
+                'orders.id as order_id',
+                'orders.order_number',
+                'users.name as customer_name',
+                'orders.created_at as order_date',
+                'order_items.quantity',
+            ])
+            ->map(function (OrderItem $row) use ($timezone): array {
+                $orderDate = $row->getAttribute('order_date');
+
+                return [
+                    'order_id' => (int) $row->getAttribute('order_id'),
+                    'order_number' => (string) $row->getAttribute('order_number'),
+                    'customer_name' => (string) $row->getAttribute('customer_name'),
+                    'date' => $orderDate ? Carbon::parse((string) $orderDate, 'UTC')->setTimezone($timezone)->format('d/m/Y') : '',
+                    'quantity' => (int) $row->quantity,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return response()->json(['orders' => $orders]);
     }
 
     public function sellingProductsExport(Request $request): BinaryFileResponse

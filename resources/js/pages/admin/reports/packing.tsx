@@ -18,12 +18,69 @@ type Row = {
     address: string;
 };
 
+type CustomerGroup = {
+    user_name: string;
+    quantity: number;
+    addresses: string[];
+};
+
+type ProductGroup = {
+    product_name: string;
+    quantity: number;
+    customers: CustomerGroup[];
+};
+
+/**
+ * Fold the flat packing rows into product groups, then customer groups, so
+ * the table reads as "this many of this card for this person at this address".
+ */
+const groupRows = (rows: Row[]): ProductGroup[] => {
+    const products = new Map<string, ProductGroup>();
+
+    for (const row of rows) {
+        let product = products.get(row.product_name);
+
+        if (!product) {
+            product = {
+                product_name: row.product_name,
+                quantity: 0,
+                customers: [],
+            };
+            products.set(row.product_name, product);
+        }
+
+        let customer = product.customers.find(
+            (group) => group.user_name === row.user_name,
+        );
+
+        if (!customer) {
+            customer = {
+                user_name: row.user_name,
+                quantity: 0,
+                addresses: [],
+            };
+            product.customers.push(customer);
+        }
+
+        product.quantity += row.quantity;
+        customer.quantity += row.quantity;
+
+        if (row.address && !customer.addresses.includes(row.address)) {
+            customer.addresses.push(row.address);
+        }
+    }
+
+    return [...products.values()];
+};
+
 type Props = {
     rows: Row[];
     filters: Filters;
 };
 
 export default function PackingReport({ rows, filters }: Props) {
+    const groups = groupRows(rows);
+
     const query = {
         ...(filters.search ? { search: filters.search } : {}),
     };
@@ -79,17 +136,11 @@ export default function PackingReport({ rows, filters }: Props) {
                             </Form>
                         </div>
 
-                        {rows.length > 0 ? (
+                        {groups.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm max-md:[&_td]:align-top max-md:[&_th]:align-top">
                                     <thead>
                                         <tr className="border-b text-left text-xs text-muted-foreground">
-                                            <th className="px-4 py-3 font-medium">
-                                                {t('Product')}
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                {t('Order date')}
-                                            </th>
                                             <th className="px-4 py-3 font-medium">
                                                 {t('Customer')}
                                             </th>
@@ -101,30 +152,67 @@ export default function PackingReport({ rows, filters }: Props) {
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-border">
-                                        {rows.map((row, index) => (
-                                            <tr
-                                                key={`${row.product_name}-${row.user_name}-${index}`}
-                                                className="hover:bg-muted/50"
-                                            >
-                                                <td className="px-4 py-3 font-medium">
-                                                    {row.product_name}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {row.order_date ?? '—'}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {row.user_name}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    {row.quantity}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {row.address || '—'}
+                                    {groups.map((product) => (
+                                        <tbody
+                                            key={product.product_name}
+                                            className="divide-y divide-border"
+                                        >
+                                            <tr className="border-t-2 border-border bg-muted/60">
+                                                <td
+                                                    colSpan={3}
+                                                    className="px-4 py-2.5"
+                                                >
+                                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                                        <span className="flex items-center gap-2 font-semibold">
+                                                            <Package className="size-4 text-indigo-600" />
+                                                            {
+                                                                product.product_name
+                                                            }
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {t('Total')}:{' '}
+                                                            {product.quantity}
+                                                        </span>
+                                                    </div>
                                                 </td>
                                             </tr>
-                                        ))}
-                                    </tbody>
+                                            {product.customers.map(
+                                                (customer) => (
+                                                    <tr
+                                                        key={customer.user_name}
+                                                        className="hover:bg-muted/50"
+                                                    >
+                                                        <td className="px-4 py-3 font-medium">
+                                                            {customer.user_name}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            {customer.quantity}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-muted-foreground">
+                                                            {customer.addresses
+                                                                .length > 0
+                                                                ? customer.addresses.map(
+                                                                      (
+                                                                          address,
+                                                                      ) => (
+                                                                          <p
+                                                                              key={
+                                                                                  address
+                                                                              }
+                                                                          >
+                                                                              {
+                                                                                  address
+                                                                              }
+                                                                          </p>
+                                                                      ),
+                                                                  )
+                                                                : '—'}
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )}
+                                        </tbody>
+                                    ))}
                                 </table>
                             </div>
                         ) : (

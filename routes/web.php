@@ -80,6 +80,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
         Route::get('reports/selling-products', [ReportController::class, 'sellingProducts'])->name('admin.reports.selling-products');
+        Route::get('reports/selling-products/history', [ReportController::class, 'sellingProductHistory'])->name('admin.reports.selling-products.history');
         Route::get('reports/selling-products/export', [ReportController::class, 'sellingProductsExport'])->name('admin.reports.selling-products.export');
         Route::get('reports/customer-buying', [ReportController::class, 'customerBuying'])->name('admin.reports.customer-buying');
         Route::get('reports/customer-buying/export', [ReportController::class, 'customerBuyingExport'])->name('admin.reports.customer-buying.export');
